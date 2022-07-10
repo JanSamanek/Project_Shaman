@@ -76,6 +76,17 @@ class Detector:
         pass
 
 
+def display_fps(img, previous_time):
+
+    # measuring and displaying fps
+    current_time = time.time()
+    fps = 1/(current_time - previous_time)
+    previous_time = current_time
+    cv2.putText(img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 2,
+                (0, 0, 255), 3)
+    return previous_time
+
+
 def main():
     previous_time = 0
 
@@ -91,12 +102,7 @@ def main():
         detector.detect_angle(img, 12, 14, 16)
         # print(lm_list[12])
 
-        # measuring and displaying fps
-        current_time = time.time()
-        fps = 1/(current_time - previous_time)
-        previous_time = current_time
-        cv2.putText(img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 2,
-                    (0, 0, 255), 3)
+        previous_time = display_fps(img, previous_time)
 
         cv2.imshow("Vision", img)
         cv2.waitKey(1)
