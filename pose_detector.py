@@ -2,9 +2,12 @@ import cv2
 import mediapipe as mp
 import time
 import math
+import numpy as np
 
 
 class Detector:
+
+    POSE_LM_NUM = 33
 
     def __init__(self, **kwargs):
 
@@ -12,40 +15,42 @@ class Detector:
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(**kwargs)
 
-    def find_pose(self, img, draw=True):
+    def init_landmarks(self, img, draw=True):
 
+        # to enhance performance
+        img.flags.writeable = False
         # detecting pose and drawing landmarks, connections
         # cv2 reads the image in BGR but mp needs RGB as input
         img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.pose.process(img_RGB)
+        img.flags.writeable = True
+
         if self.results.pose_landmarks:
             if draw:
                 self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
         return img
 
-    def detect_position(self, img, draw=True):
+    def get_landmarks(self, img):
 
-        self.landmark_list = []
+        lm_list = []
 
         if self.results.pose_landmarks:
-            # getting list of landmarks with corresponding coordinates
-            for landmark_id, landmark in enumerate(self.results.pose_landmarks.landmark):
-                height, width, _ = img.shape
-                # getting pixel value position of the landmarks
-                position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                self.landmark_list.append((landmark_id, position_pix_x, position_pix_y))
-                if draw:
-                    cv2.circle(img, (position_pix_x, position_pix_y), 3, (255, 0, 0), cv2.FILLED)
+            for lm in self.results.pose_landmarks.landmark:
+                lm_list.append([lm.x, lm.y, lm.z])
+        else:
+            lm_list = [0 for i in range(3 * Detector.POSE_LM_NUM)]
 
-        return self.landmark_list
+        self.pose_landmarks = np.array(lm_list).flatten()
 
-    def detect_angle(self, img, point1, point2, point3, draw=True):
+        return self.pose_landmarks
+
+    def detect_angle(self, img, point1, point2, point3):
 
         # retrieve x, y position for each point
         try:
-            position_pix_x1, position_pix_y1 = self.landmark_list[point1][1:]
-            position_pix_x2, position_pix_y2 = self.landmark_list[point2][1:]
-            position_pix_x3, position_pix_y3 = self.landmark_list[point3][1:]
+            position_pix_x1, position_pix_y1 = self.pose_landmarks[point1][1:]
+            position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
+            position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
         except IndexError:
             print("missing parameters to calculate angle")
         else:
@@ -58,22 +63,7 @@ class Detector:
 
             print(angle)        # TODO remove after testing
 
-            # draw
-            if draw:
-                cv2.line(img, (position_pix_x1, position_pix_y1), (position_pix_x2, position_pix_y2), (0, 0, 255), 3)
-                cv2.line(img, (position_pix_x2, position_pix_y2), (position_pix_x3, position_pix_y3), (0, 0, 255), 3)
-                cv2.circle(img, (position_pix_x1, position_pix_y1), 5, (0, 0, 255), cv2.FILLED)
-                cv2.circle(img, (position_pix_x1, position_pix_y1), 10, (0, 0, 255))
-                cv2.circle(img, (position_pix_x2, position_pix_y2), 5, (0, 0, 255), cv2.FILLED)
-                cv2.circle(img, (position_pix_x2, position_pix_y2), 10, (0, 0, 255))
-                cv2.circle(img, (position_pix_x3, position_pix_y3), 5, (0, 0, 255), cv2.FILLED)
-                cv2.circle(img, (position_pix_x3, position_pix_y3), 10, (0, 0, 255))
-
             return angle
-
-    def detect_gesture(self, img):
-
-        pass
 
 
 def display_fps(img, previous_time):
@@ -90,22 +80,27 @@ def display_fps(img, previous_time):
 def main():
     previous_time = 0
 
-    vision_cap = cv2.VideoCapture(0)    # TODO remove inbuilt camera view
+    cap = cv2.VideoCapture(0)    # TODO remove inbuilt camera view
     detector = Detector()
 
-    while True:
+    while cap.isOpened():
         # reading the image from video capture
-        _, img = vision_cap.read()
-        img = detector.find_pose(img)
+        _, img = cap.read()
+        img = detector.init_landmarks(img)
 
-        lm_list = detector.detect_position(img)
+        lm_array = detector.get_landmarks(img)
         detector.detect_angle(img, 12, 14, 16)
-        # print(lm_list[12])
 
         previous_time = display_fps(img, previous_time)
 
         cv2.imshow("Vision", img)
-        cv2.waitKey(1)
+
+        # breaks out of the loop if q is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':

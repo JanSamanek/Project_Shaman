@@ -27,6 +27,8 @@ class Detector:
         # cv2 reads the image in BGR but mp needs RGB as input
         img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.holistic.process(img_RGB)
+        img.flags.writeable = True
+
         if draw:
             if self.results.right_hand_landmarks:
                 self.mp_draw.draw_landmarks(img, self.results.right_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS)
@@ -49,7 +51,7 @@ class Detector:
             for landmark in self.results.pose_landmarks.landmark:
                 # getting pixel value position of the landmarks
                 position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                pose_lm_list.append([position_pix_x, position_pix_y])
+                pose_lm_list.append(np.array([position_pix_x, position_pix_y]))
         self.lm_dict["pose"] = pose_lm_list
 
         if self.results.right_hand_landmarks:
@@ -57,25 +59,27 @@ class Detector:
             for landmark in self.results.right_hand_landmarks.landmark:
                 # getting pixel value position of the landmarks
                 position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                r_hand_lm_list.append([position_pix_x, position_pix_y])
+                r_hand_lm_list.append(np.array([position_pix_x, position_pix_y]))
         self.lm_dict["right_hand"] = r_hand_lm_list
 
         if self.results.left_hand_landmarks:
             # getting list of landmarks with corresponding coordinates
-            for landmark in self.results.left_hand_landmarks.landmark:
+            for landmark in self.results.left_hand_landmarks.landmark: # TODO rebuild into comprehension
                 # getting pixel value position of the landmarks
                 position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                l_hand_lm_list.append([position_pix_x, position_pix_y])
+                l_hand_lm_list.append(np.array([position_pix_x, position_pix_y]))
         self.lm_dict["left_hand"] = l_hand_lm_list
 
         return self.lm_dict[body_part]
 
     def detect_hand_gesture(self, img, hand):
 
-        landmarks = self.get_landmarks(img, hand)
+        landmarks_list_of_arr = self.get_landmarks(img, hand)
+        landmarks_list_of_lists = [landmarks_arr.tolist() for landmarks_arr in landmarks_list_of_arr]
 
         try:
-            prediction = self.model.predict([landmarks])
+            # takes list of lists as input
+            prediction = self.model.predict([landmarks_list_of_lists])
         except KeyError:
             print('Not enough parameters to evaluate')
         else:
@@ -104,16 +108,23 @@ def main():
     detector = Detector()
     previous_time = 0
 
-    while True:
+    while vision_cap.isOpened():
         # reading the image from video capture
         _, img = vision_cap.read()
         img = detector.init_landmarks(img)
 
         detector.detect_hand_gesture(img, 'right_hand')
+
         previous_time = display_fps(img, previous_time)
 
         cv2.imshow("Vision", img)
-        cv2.waitKey(1)
+
+        # breaks out of the loop if q is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    vision_cap.release()
+    cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
