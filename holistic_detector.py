@@ -1,10 +1,11 @@
 import cv2
 import mediapipe as mp
 import time
-import math
+import numpy as np
+from tensorflow.keras.models import load_model
 
 
-class LandmarkDetector:
+class Detector:
 
     def __init__(self, **kwargs):
 
@@ -14,8 +15,14 @@ class LandmarkDetector:
 
         self.lm_dict = {}
 
-    def detect_landmarks(self, img, draw=True):
+        self.model = load_model('mp_hand_gesture')
+        with open('gesture.names', 'r') as file:
+            self.class_names = file.read().split('\n')
 
+    def init_landmarks(self, img, draw=True):
+
+        # to enhance performance
+        img.flags.writeable = False
         # detecting pose and drawing landmarks, connections
         # cv2 reads the image in BGR but mp needs RGB as input
         img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -39,29 +46,44 @@ class LandmarkDetector:
 
         if self.results.pose_landmarks:
             # getting list of landmarks with corresponding coordinates
-            for landmark_id, landmark in enumerate(self.results.pose_landmarks.landmark):
+            for landmark in self.results.pose_landmarks.landmark:
                 # getting pixel value position of the landmarks
                 position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                pose_lm_list.append((landmark_id, position_pix_x, position_pix_y))
+                pose_lm_list.append([position_pix_x, position_pix_y])
         self.lm_dict["pose"] = pose_lm_list
 
         if self.results.right_hand_landmarks:
             # getting list of landmarks with corresponding coordinates
-            for landmark_id, landmark in enumerate(self.results.right_hand_landmarks.landmark):
+            for landmark in self.results.right_hand_landmarks.landmark:
                 # getting pixel value position of the landmarks
                 position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                r_hand_lm_list.append((landmark_id, position_pix_x, position_pix_y))
+                r_hand_lm_list.append([position_pix_x, position_pix_y])
         self.lm_dict["right_hand"] = r_hand_lm_list
 
         if self.results.left_hand_landmarks:
             # getting list of landmarks with corresponding coordinates
-            for landmark_id, landmark in enumerate(self.results.left_hand_landmarks.landmark):
+            for landmark in self.results.left_hand_landmarks.landmark:
                 # getting pixel value position of the landmarks
                 position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                l_hand_lm_list.append((landmark_id, position_pix_x, position_pix_y))
+                l_hand_lm_list.append([position_pix_x, position_pix_y])
         self.lm_dict["left_hand"] = l_hand_lm_list
 
         return self.lm_dict[body_part]
+
+    def detect_hand_gesture(self, img, hand):
+
+        landmarks = self.get_landmarks(img, hand)
+
+        try:
+            prediction = self.model.predict([landmarks])
+        except KeyError:
+            print('Not enough parameters to evaluate')
+        else:
+            print(prediction)
+            classID = np.argmax(prediction)
+            class_name = self.class_names[classID]
+            cv2.putText(img, class_name, (400, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (0, 0, 255), 2, cv2.LINE_AA)
 
 
 def display_fps(img, previous_time):
@@ -79,16 +101,15 @@ def display_fps(img, previous_time):
 def main():
 
     vision_cap = cv2.VideoCapture(0)    # TODO remove inbuilt camera view
-    detector = LandmarkDetector()
+    detector = Detector()
     previous_time = 0
 
     while True:
         # reading the image from video capture
         _, img = vision_cap.read()
-        img = detector.detect_landmarks(img, False)
+        img = detector.init_landmarks(img)
 
-        print(detector.get_landmarks(img, 'right_hand'))  # TODO Index out of range problem if body part isn't in the frame
-
+        detector.detect_hand_gesture(img, 'right_hand')
         previous_time = display_fps(img, previous_time)
 
         cv2.imshow("Vision", img)
