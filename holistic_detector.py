@@ -7,17 +7,19 @@ from tensorflow.keras.models import load_model
 
 class Detector:
 
+    POSE_LM_NUM = 33
+    HAND_LM_NUM = 21
+    FACE_LM_NUM = 468
+
     def __init__(self, **kwargs):
 
         self.mp_draw = mp.solutions.drawing_utils
         self.mp_holistic = mp.solutions.holistic
         self.holistic = self.mp_holistic.Holistic(**kwargs)
 
-        self.lm_dict = {}
-
-        self.model = load_model('mp_hand_gesture')
-        with open('gesture.names', 'r') as file:
-            self.class_names = file.read().split('\n')
+        self.hand_model = load_model('mp_hand_gesture')
+        self.class_names = ['okay', 'peace', 'thumbs up', 'thumbs down',
+                            'call me', 'stop', 'rock', 'live long', 'fist', 'smile']
 
     def init_landmarks(self, img, draw=True):
 
@@ -36,52 +38,69 @@ class Detector:
                 self.mp_draw.draw_landmarks(img, self.results.left_hand_landmarks, self.mp_holistic.HAND_CONNECTIONS)
             if self.results.pose_landmarks:
                 self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_holistic.POSE_CONNECTIONS)
+            if self.results.face_landmarks:
+                self.mp_draw.draw_landmarks(img, self.results.face_landmarks, self.mp_holistic.FACEMESH_TESSELATION,
+                                            self.mp_draw.DrawingSpec(color=(80, 110, 10), thickness=1, circle_radius=1),
+                                            self.mp_draw.DrawingSpec(color=(80, 256, 121), thickness=1, circle_radius=1))
         return img
 
-    def get_landmarks(self, img, body_part):
+    def get_landmarks(self):
 
         r_hand_lm_list = []
         l_hand_lm_list = []
         pose_lm_list = []
-
-        height, width, _ = img.shape
+        face_lm_list = []
 
         if self.results.pose_landmarks:
-            # getting list of landmarks with corresponding coordinates
-            for landmark in self.results.pose_landmarks.landmark:
-                # getting pixel value position of the landmarks
-                position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                pose_lm_list.append(np.array([position_pix_x, position_pix_y]))
-        self.lm_dict["pose"] = pose_lm_list
+            for lm in self.results.pose_landmarks.landmark:
+                pose_lm_list.append([lm.x, lm.y, lm.z]) # TODO lm.visibility
+            pose_landmarks = np.array(pose_lm_list).flatten()
+        else:
+            pose_landmarks = np.zeros(3 * Detector.POSE_LM_NUM)
 
         if self.results.right_hand_landmarks:
-            # getting list of landmarks with corresponding coordinates
-            for landmark in self.results.right_hand_landmarks.landmark:
-                # getting pixel value position of the landmarks
-                position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                r_hand_lm_list.append(np.array([position_pix_x, position_pix_y]))
-        self.lm_dict["right_hand"] = r_hand_lm_list
+            for lm in self.results.right_hand_landmarks.landmark:
+                r_hand_lm_list.append([lm.x, lm.y, lm.z])
+            r_hand_landmarks = np.array(r_hand_lm_list).flatten()
+        else:
+            r_hand_landmarks = np.zeros(3 * Detector.HAND_LM_NUM)
 
         if self.results.left_hand_landmarks:
-            # getting list of landmarks with corresponding coordinates
-            for landmark in self.results.left_hand_landmarks.landmark: # TODO rebuild into comprehension
-                # getting pixel value position of the landmarks
-                position_pix_x, position_pix_y = int(landmark.x*width), int(landmark.y*height)
-                l_hand_lm_list.append(np.array([position_pix_x, position_pix_y]))
-        self.lm_dict["left_hand"] = l_hand_lm_list
+            for lm in self.results.left_hand_landmarks.landmark:
+                l_hand_lm_list.append([lm.x, lm.y, lm.z])
+            l_hand_landmarks = np.array(l_hand_lm_list).flatten()
+        else:
+            l_hand_landmarks = np.zeros(3 * Detector.HAND_LM_NUM)
 
-        return self.lm_dict[body_part]
+        if self.results.face_landmarks:
+            for lm in self.results.face_landmarks.landmark:
+                face_lm_list.append([lm.x, lm.y, lm.z])
+            face_landmarks = np.array(face_lm_list).flatten()
+        else:
+            face_landmarks = np.zeros(3 * Detector.FACE_LM_NUM)
 
-    def detect_hand_gesture(self, img, hand):
+        self.landmarks = np.concatenate([pose_landmarks, face_landmarks, l_hand_landmarks, r_hand_landmarks])
 
-        landmarks_list_of_arr = self.get_landmarks(img, hand)
-        landmarks_list_of_lists = [landmarks_arr.tolist() for landmarks_arr in landmarks_list_of_arr]
+        return self.landmarks
+
+    def detect_hand_gesture(self, img):
+
+        right_hand_lms = []
+        height, width, _ = img.shape
 
         try:
+
+            for lm in self.results.right_hand_landmarks.landmark:
+            # getting pixel value position of the landmarks
+                position_pix_x, position_pix_y = int(lm.x*width), int(lm.y*height)
+                right_hand_lms.append([position_pix_x, position_pix_y])
+
             # takes list of lists as input
-            prediction = self.model.predict([landmarks_list_of_lists])
-        except KeyError:
+            prediction = self.hand_model.predict([right_hand_lms])
+
+        except AttributeError:
             print('Not enough parameters to evaluate')
+
         else:
             print(prediction)
             classID = np.argmax(prediction)
@@ -113,10 +132,10 @@ def main():
         _, img = vision_cap.read()
         img = detector.init_landmarks(img)
 
-        detector.detect_hand_gesture(img, 'right_hand')
+        detector.detect_hand_gesture(img)
+        detector.get_landmarks()
 
         previous_time = display_fps(img, previous_time)
-
         cv2.imshow("Vision", img)
 
         # breaks out of the loop if q is pressed
