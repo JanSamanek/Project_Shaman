@@ -19,4 +19,4 @@ for action in actions:
 videos = np.array(videos)
 labels = to_categorical(labels).astype(int)
 
-videos_train, videos_test, labels_train, labels_test = train_test_split(videos, labels, test_size=0.1)
+videos_train, videos_test, labels_train, labels_test = train_test_split(videos, labels, test_size=0.05)

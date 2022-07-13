@@ -5,7 +5,7 @@ import numpy as np
 DATA_PATH = os.path.join("pose_gesture_data")
 actions = np.array(["iloveyou", "hello"])
 # thirty videos worth of data
-video_num = 30
+video_num = 60
 # videos are going to be 30 frames in length
 video_len = 30
 

@@ -53,10 +53,10 @@ class Detector:
 
         if self.results.pose_landmarks:
             for lm in self.results.pose_landmarks.landmark:
-                pose_lm_list.append([lm.x, lm.y, lm.z]) # TODO lm.visibility
+                pose_lm_list.append([lm.x, lm.y, lm.z, lm.visibility])
             pose_landmarks = np.array(pose_lm_list).flatten()
         else:
-            pose_landmarks = np.zeros(3 * Detector.POSE_LM_NUM)
+            pose_landmarks = np.zeros(4 * Detector.POSE_LM_NUM)
 
         if self.results.right_hand_landmarks:
             for lm in self.results.right_hand_landmarks.landmark:
