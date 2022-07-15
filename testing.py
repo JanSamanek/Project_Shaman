@@ -1,10 +1,12 @@
 import holistic_detector as hd
 import cv2
+import preprocessing_and_training_NN as NN
+from videos_setup import actions
+from sklearn.metrics import multilabel_confusion_matrix, accuracy_score
 import numpy as np
-import building_and_training_NN as NN
-from folder_setup import actions
+from preprocessing_and_training_NN import videos_train, labels_train, model
 
-cap = cv2.VideoCapture(0)    # TODO remove inbuilt camera view
+cap = cv2.VideoCapture(0)
 detector = hd.Detector()
 sequence = []
 
@@ -27,6 +29,12 @@ while cap.isOpened():
     # breaks out of the loop if q is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+prediction = model.predict(videos_train)
+prediction_true = np.argmax(labels_train, axis=1).tolist()
+prediction = np.argmax(prediction, axis=1).tolist()
+print(multilabel_confusion_matrix(prediction_true, prediction))
+print(accuracy_score(prediction_true, prediction))
 
 cap.release()
 cv2.destroyAllWindows()
