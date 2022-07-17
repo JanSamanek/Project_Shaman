@@ -25,8 +25,6 @@ labels = to_categorical(labels).astype(int)
 
 videos_train, videos_test, labels_train, labels_test = train_test_split(videos, labels, test_size=0.05)
 
-log_dir = os.path.join('Logs')
-tensorboard_callback = TensorBoard(log_dir=log_dir)
 model = Sequential()
 model.add(LSTM(64, return_sequences=True, activation='relu', input_shape=videos.shape[1:]))
 model.add(LSTM(128, return_sequences=True, activation='relu'))
@@ -35,7 +33,11 @@ model.add(Dense(64, activation='relu'))
 model.add(Dense(32, activation='relu'))
 model.add(Dense(actions.shape[0], activation='softmax'))
 
-model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-model.fit(videos_train, labels_train, epochs=2000, callbacks=[tensorboard_callback])
-model.save('pose_gesture_model')
-# can load the weighted model with model.load_weights('pose_gesture_model)
+if __name__ == '__main__':
+    log_dir = os.path.join('Logs')
+    tensorboard_callback = TensorBoard(log_dir=log_dir)
+
+    model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
+    model.fit(videos_train, labels_train, epochs=150, callbacks=[tensorboard_callback])
+    model.save('pose_gesture_model')
+    # can load the weighted model with model.load_weights('pose_gesture_model)

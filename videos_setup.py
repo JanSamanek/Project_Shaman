@@ -3,10 +3,10 @@ import numpy as np
 import cv2
 import holistic_detector as hd
 
-DATA_PATH = os.path.join("pose_gesture_data")
-actions = np.array(["iloveyou", "hello"])
+DATA_PATH = os.path.join("pose_gest_data")
+actions = np.array(["arm_ninty", "fist_half_up", 'arm_up'])
 # thirty videos worth of data
-video_num = 60
+video_num = 30
 # videos are going to be 30 frames in length
 video_len = 30
 
