@@ -5,7 +5,6 @@ from videos_setup import video_num, video_len, DATA_PATH, actions
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 from tensorflow.keras.callbacks import TensorBoard
-from videos_setup import actions
 import os
 
 label_map = {label: num for num, label in enumerate(actions)}

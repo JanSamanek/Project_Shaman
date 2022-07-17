@@ -12,12 +12,7 @@ from sklearn.metrics import multilabel_confusion_matrix, accuracy_score
 from tensorflow.keras.models import load_model
 
 
-class DataCollector(object):
-
-    def __init__(self):
-        pass
-
-class NeuralNetworkDetector(object):
+class DataManipulator(object):
 
     def __init__(self, *actions, folder_name="neural_network_data", video_num=30, num_of_frames=30):
 
@@ -27,12 +22,17 @@ class NeuralNetworkDetector(object):
         self.num_of_frames = num_of_frames
 
         self.label_map = {label: num for num, label in enumerate(actions)}
-
         self.videos = []
         self.labels = []
 
+        self.videos_train = None
+        self.videos_test = None
+        self.labels_train = None
+        self.labels_test = None
+
     def create_folders(self):
 
+        print(f'Creating folder: {self.DATA_PATH}')
         for action in self.actions:
             for video in range(self.video_num):
                 os.makedirs(os.path.join(self.DATA_PATH, action, str(video)))
@@ -79,6 +79,7 @@ class NeuralNetworkDetector(object):
 
     def preprocess_data(self):
 
+        print('Preprocessing data')
         for action in self.actions:
             for video in range(self.video_num):
                 frame_sequence = []
@@ -93,6 +94,14 @@ class NeuralNetworkDetector(object):
 
         self.videos_train, self.videos_test, self.labels_train, self.labels_test = \
             train_test_split(self.videos, self.labels, test_size=0.05)
+
+
+class NeuralNetwork(DataManipulator):
+
+    def __init__(self, *actions):
+
+        super().__init__(*actions)
+        self.model = None
 
     def create_neural_network(self):
 
@@ -111,7 +120,20 @@ class NeuralNetworkDetector(object):
 
         self.model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
         self.model.fit(self.videos_train, self.labels_train, epochs=150, callbacks=[tensorboard_callback])
-        self.model.save('pose_gesture_model')
+        self.model.save('neural_network_model')
+
+    def load_neural_network(self, file_name):
+        self.model = load_model(file_name)
+
+    def save_neural_network(self, filename):
+        self.model.save(filename)
+
+
+class Detector(NeuralNetwork):
+
+    def __init__(self, *actions):
+
+        super().__init__(*actions)
 
     def real_time_detection(self):
 
@@ -152,7 +174,10 @@ class NeuralNetworkDetector(object):
 
 
 def main():
-    pass
+    detector = Detector('ahoj', 'najs', 'dobry')
+    detector.load_neural_network('pose_gesture_model')
+    detector.real_time_detection()
 
 
 if __name__ == '__main__':
+    main()
