@@ -5,7 +5,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 
 
-class Detector:
+class HolisticDetector:
 
     POSE_LM_NUM = 33
     HAND_LM_NUM = 21
@@ -56,28 +56,28 @@ class Detector:
                 pose_lm_list.append([lm.x, lm.y, lm.z, lm.visibility])
             pose_landmarks = np.array(pose_lm_list).flatten()
         else:
-            pose_landmarks = np.zeros(4 * Detector.POSE_LM_NUM)
+            pose_landmarks = np.zeros(4 * HolisticDetector.POSE_LM_NUM)
 
         if self.results.right_hand_landmarks:
             for lm in self.results.right_hand_landmarks.landmark:
                 r_hand_lm_list.append([lm.x, lm.y, lm.z])
             r_hand_landmarks = np.array(r_hand_lm_list).flatten()
         else:
-            r_hand_landmarks = np.zeros(3 * Detector.HAND_LM_NUM)
+            r_hand_landmarks = np.zeros(3 * HolisticDetector.HAND_LM_NUM)
 
         if self.results.left_hand_landmarks:
             for lm in self.results.left_hand_landmarks.landmark:
                 l_hand_lm_list.append([lm.x, lm.y, lm.z])
             l_hand_landmarks = np.array(l_hand_lm_list).flatten()
         else:
-            l_hand_landmarks = np.zeros(3 * Detector.HAND_LM_NUM)
+            l_hand_landmarks = np.zeros(3 * HolisticDetector.HAND_LM_NUM)
 
         if self.results.face_landmarks:
             for lm in self.results.face_landmarks.landmark:
                 face_lm_list.append([lm.x, lm.y, lm.z])
             face_landmarks = np.array(face_lm_list).flatten()
         else:
-            face_landmarks = np.zeros(3 * Detector.FACE_LM_NUM)
+            face_landmarks = np.zeros(3 * HolisticDetector.FACE_LM_NUM)
 
         self.landmarks = np.concatenate([pose_landmarks, face_landmarks, l_hand_landmarks, r_hand_landmarks])
 
@@ -124,7 +124,7 @@ def display_fps(img, previous_time):
 def main():
 
     vision_cap = cv2.VideoCapture(0)    # TODO remove inbuilt camera view
-    detector = Detector()
+    detector = HolisticDetector()
     previous_time = 0
 
     while vision_cap.isOpened():

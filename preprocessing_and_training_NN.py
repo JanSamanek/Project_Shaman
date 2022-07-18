@@ -24,6 +24,7 @@ labels = to_categorical(labels).astype(int)
 
 videos_train, videos_test, labels_train, labels_test = train_test_split(videos, labels, test_size=0.05)
 
+
 model = Sequential()
 model.add(LSTM(64, return_sequences=True, activation='relu', input_shape=videos.shape[1:]))
 model.add(LSTM(128, return_sequences=True, activation='relu'))

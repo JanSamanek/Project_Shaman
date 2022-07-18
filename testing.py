@@ -7,7 +7,7 @@ from preprocessing_and_training_NN import videos_test, labels_test
 from tensorflow.keras.models import load_model
 
 cap = cv2.VideoCapture(0)
-detector = hd.Detector()
+detector = hd.HolisticDetector()
 
 sequence = []
 model = load_model('pose_gesture_model')

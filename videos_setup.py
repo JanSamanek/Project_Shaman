@@ -16,7 +16,7 @@ if __name__ == '__main__':
             os.makedirs(os.path.join(DATA_PATH, action, str(video)))
 
     cap = cv2.VideoCapture(0)
-    detector = hd.Detector()
+    detector = hd.HolisticDetector()
 
     for action in actions:
         # loop through videos
