@@ -5,7 +5,7 @@ import math
 import numpy as np
 
 
-class Detector:
+class PoseDetector:
 
     POSE_LM_NUM = 33
 
@@ -30,7 +30,7 @@ class Detector:
                 self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
         return img
 
-    def get_landmarks(self, img):
+    def get_landmarks(self):
 
         lm_list = []
 
@@ -39,7 +39,7 @@ class Detector:
                 lm_list.append([lm.x, lm.y, lm.z])
             self.pose_landmarks = np.array(lm_list).flatten()
         else:
-            self.pose_landmarks = np.zeros(3 * Detector.POSE_LM_NUM)
+            self.pose_landmarks = np.zeros(3 * PoseDetector.POSE_LM_NUM)
 
         return self.pose_landmarks
 
@@ -80,14 +80,14 @@ def main():
     previous_time = 0
 
     cap = cv2.VideoCapture(0)    # TODO remove inbuilt camera view
-    detector = Detector()
+    detector = PoseDetector()
 
     while cap.isOpened():
         # reading the image from video capture
         _, img = cap.read()
         img = detector.init_landmarks(img)
 
-        lm_array = detector.get_landmarks(img)
+        lm_array = detector.get_landmarks()
         # detector.detect_angle(img, 12, 14, 16)
 
         previous_time = display_fps(img, previous_time)

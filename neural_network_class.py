@@ -75,7 +75,7 @@ class NeuralNetwork(object):
     def prepare_data(self, data_path, video_num=30, num_of_frames=30):
 
         data_path = os.path.join(data_path)
-        print('Preprocessing data')
+        print('Preprocessing data...')
         for action in self.actions:
             for video in range(video_num):
                 frame_sequence = []
@@ -106,19 +106,21 @@ class NeuralNetwork(object):
         tensorboard_callback = TensorBoard(log_dir=log_dir)
 
         self.model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-        self.model.fit(videos_train, labels_train, epochs=150, callbacks=[tensorboard_callback])
+        self.model.fit(videos_train, labels_train, epochs=100, callbacks=[tensorboard_callback])
 
     def save(self, folder_name):
-        print('Saving neural network model')
+        print('Saving neural network model...')
         self.model.save(folder_name)
 
     def load(self, data_path):
         self.model = load_model(data_path)
 
     def evaluate(self, videos_test, labels_test):
+
         prediction = self.model.predict(videos_test)
         prediction_true = np.argmax(labels_test, axis=1).tolist()
         prediction = np.argmax(prediction, axis=1).tolist()
+
         print("Model's multilabel_confusion_matrix: ")
         print(multilabel_confusion_matrix(prediction_true, prediction))
         print("Model's accuracy_score: ", accuracy_score(prediction_true, prediction))
@@ -137,16 +139,19 @@ class NeuralNetwork(object):
 
 
 def main():
-    #data = DataManipulator()
-    #data.gather_data('data_zkousim', 'ahoj', 'stop')
 
-    nn = NeuralNetwork('arm_ninty', 'arm_up', 'fist_half_up')
-    videos_train, labels_train, videos_test, labels_test = nn.prepare_data('pose_gest_data')
-    nn.load('pose_gesture_model')
+    with open('gesture_in_order.txt') as file:
+        actions = file.read().split('\n')
+
+    nn = NeuralNetwork(*actions)
+    nn.load('gesture_model')
+    videos_train, labels_train, videos_test, labels_test = nn.prepare_data('holistic_gesture_data')
     nn.evaluate(videos_test, labels_test)
 
     cap = cv2.VideoCapture(0)
     detector = hd.HolisticDetector()
+
+    previous_time = 0
 
     while cap.isOpened():
         # reading the image from video capture
@@ -154,9 +159,9 @@ def main():
         img = detector.init_landmarks(img)
 
         key_points = detector.get_landmarks()
-
         nn.detect_gesture(key_points)
 
+        previous_time = hd.display_fps(img, previous_time)
         cv2.imshow("Vision", img)
 
         # breaks out of the loop if q is pressed
@@ -165,4 +170,15 @@ def main():
 
 
 if __name__ == '__main__':
+    # with open('gesture_in_order.txt') as file:
+    #     actions = file.read().split('\n')
+    #
+    # nn = NeuralNetwork(*actions)
+    # videos_train, labels_train, videos_test, labels_test = nn.prepare_data('holistic_gesture_data')
+    # nn.create_and_train(videos_train, labels_train)
+    # nn.save('gesture_model')
+    # nn.evaluate(videos_test, labels_test)
+
     main()
+
+

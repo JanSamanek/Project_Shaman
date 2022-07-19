@@ -2,7 +2,6 @@ import cv2
 import mediapipe as mp
 import time
 import numpy as np
-from tensorflow.keras.models import load_model
 
 
 class HolisticDetector:
@@ -16,10 +15,6 @@ class HolisticDetector:
         self.mp_draw = mp.solutions.drawing_utils
         self.mp_holistic = mp.solutions.holistic
         self.holistic = self.mp_holistic.Holistic(**kwargs)
-
-        self.hand_model = load_model('mp_hand_gesture')
-        self.class_names = ['okay', 'peace', 'thumbs up', 'thumbs down',
-                            'call me', 'stop', 'rock', 'live long', 'fist', 'smile']
 
     def init_landmarks(self, img, draw=True):
 
@@ -83,31 +78,6 @@ class HolisticDetector:
 
         return self.landmarks
 
-    def detect_hand_gesture(self, img):
-
-        right_hand_lms = []
-        height, width, _ = img.shape
-
-        try:
-
-            for lm in self.results.right_hand_landmarks.landmark:
-            # getting pixel value position of the landmarks
-                position_pix_x, position_pix_y = int(lm.x*width), int(lm.y*height)
-                right_hand_lms.append([position_pix_x, position_pix_y])
-
-            # takes list of lists as input
-            prediction = self.hand_model.predict([right_hand_lms])
-
-        except AttributeError:
-            print('Not enough parameters to evaluate')
-
-        else:
-            print(prediction)
-            classID = np.argmax(prediction)
-            class_name = self.class_names[classID]
-            cv2.putText(img, class_name, (400, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (0, 0, 255), 2, cv2.LINE_AA)
-
 
 def display_fps(img, previous_time):
 
@@ -132,7 +102,6 @@ def main():
         _, img = vision_cap.read()
         img = detector.init_landmarks(img)
 
-        detector.detect_hand_gesture(img)
         detector.get_landmarks()
 
         previous_time = display_fps(img, previous_time)

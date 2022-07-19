@@ -1,0 +1,3 @@
+arm_ninty_left
+arm_ninty_right
+cross_up
