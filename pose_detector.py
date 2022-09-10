@@ -2,18 +2,16 @@ import cv2
 import mediapipe as mp
 import time
 import math
-import numpy as np
 
 
 class PoseDetector:
-
-    POSE_LM_NUM = 33
 
     def __init__(self, **kwargs):
 
         self.mp_draw = mp.solutions.drawing_utils
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(**kwargs)
+        self.pose_landmarks = []
 
     def init_landmarks(self, img, draw=True):
 
@@ -30,39 +28,37 @@ class PoseDetector:
                 self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
         return img
 
-    def get_landmarks(self):
+    def get_landmarks(self, img):
 
         lm_list = []
 
         if self.results.pose_landmarks:
-            for lm in self.results.pose_landmarks.landmark:
-                lm_list.append([lm.x, lm.y, lm.z])
-            self.pose_landmarks = np.array(lm_list).flatten()
-        else:
-            self.pose_landmarks = np.zeros(3 * PoseDetector.POSE_LM_NUM)
+            for ID, lm in enumerate(self.results.pose_landmarks.landmark):
+                lm_list.append([ID, lm.x, lm.y])
+            self.pose_landmarks = lm_list
 
         return self.pose_landmarks
 
-    # def detect_angle(self, img, point1, point2, point3): # TODO right now doesn't work with np arrays
-    #
-    #     # retrieve x, y position for each point
-    #     try:
-    #         position_pix_x1, position_pix_y1 = self.pose_landmarks[point1][1:]
-    #         position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
-    #         position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
-    #     except IndexError:
-    #         print("missing parameters to calculate angle")
-    #     else:
-    #         # calculate angle
-    #         angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
-    #                              - math.atan2(position_pix_y1 - position_pix_y2, position_pix_x1 - position_pix_x2))
-    #
-    #         if angle < 0:
-    #             angle += 360
-    #
-    #         print(angle)        # TODO remove after testing
-    #
-    #         return angle
+    def detect_angle(self, img, point1, point2, point3):
+
+        # retrieve x, y position for each point
+        try:
+            position_pix_x1, position_pix_y1 = self.pose_landmarks[point1][1:]
+            position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
+            position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
+        except IndexError:
+            print("missing parameters to calculate angle")
+        else:
+            # calculate angle
+            angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
+                                 - math.atan2(position_pix_y1 - position_pix_y2, position_pix_x1 - position_pix_x2))
+
+            if angle < 0:
+                angle += 360
+
+            # print(angle)
+
+            return angle
 
 
 def display_fps(img, previous_time):
@@ -87,8 +83,15 @@ def main():
         _, img = cap.read()
         img = detector.init_landmarks(img)
 
-        lm_array = detector.get_landmarks()
-        # detector.detect_angle(img, 12, 14, 16)
+        pose_list =detector.get_landmarks(img)
+        detector.detect_angle(img, 12, 14, 16)
+
+        try:
+            if pose_list[15][2] > pose_list[0][2]:
+                print(pose_list[15][2])
+                print(pose_list[0][2])
+        except:
+            pass
 
         previous_time = display_fps(img, previous_time)
 
