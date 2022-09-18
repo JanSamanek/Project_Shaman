@@ -39,6 +39,34 @@ class PoseDetector:
 
         return self.pose_landmarks
 
+    def detect_right_hand_above_nose(self):
+        RIGHT_HAND_NUM = 16
+        NOSE_NUM = 0
+        LM_Y = 2
+
+        try:
+            if self.pose_landmarks[RIGHT_HAND_NUM][LM_Y] < self.pose_landmarks[NOSE_NUM][LM_Y]:
+                return True
+            else:
+                return False
+
+        except IndexError:
+            print("missing hand or nose in video")
+
+    def detect_left_hand_above_nose(self):
+        LEFT_HAND_NUM = 15
+        NOSE_NUM = 0
+        LM_Y = 2
+
+        try:
+            if self.pose_landmarks[LEFT_HAND_NUM][LM_Y] < self.pose_landmarks[NOSE_NUM][LM_Y]:
+                return True
+            else:
+                return False
+
+        except IndexError:
+            print("missing hand or nose in video")
+
     def detect_angle(self, img, point1, point2, point3):
 
         # retrieve x, y position for each point
@@ -75,7 +103,7 @@ def display_fps(img, previous_time):
 def main():
     previous_time = 0
 
-    cap = cv2.VideoCapture(0)    # TODO remove inbuilt camera view
+    cap = cv2.VideoCapture(0)
     detector = PoseDetector()
 
     while cap.isOpened():
@@ -83,15 +111,8 @@ def main():
         _, img = cap.read()
         img = detector.init_landmarks(img)
 
-        pose_list =detector.get_landmarks(img)
+        pose_list = detector.get_landmarks(img)
         detector.detect_angle(img, 12, 14, 16)
-
-        try:
-            if pose_list[15][2] > pose_list[0][2]:
-                print(pose_list[15][2])
-                print(pose_list[0][2])
-        except:
-            pass
 
         previous_time = display_fps(img, previous_time)
 
