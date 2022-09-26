@@ -7,6 +7,7 @@ import cv2 as cv
 class JetsonNano(BehaviourTree):
 
     def __init__(self):
+        # important to have only one stream opened
         self.video_capture = cv.VideoCapture(0)
         super().__init__()
 
