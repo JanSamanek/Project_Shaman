@@ -1,5 +1,7 @@
 import cv2 as cv
 import numpy as np
+from utils.centroid_tracker import PersonCenterTracker
+from pose_detector import display_fps
 
 
 class Yolo:
@@ -17,8 +19,10 @@ class Yolo:
         self.inp_height = inp_height
         self.yolo_weights_path = yolo_weights_path
         self.yolo_config_path = yolo_config_path
+        self.pt = PersonCenterTracker()
+        self.trackable_objects = {}
 
-    def find_objects(self, image):
+    def find_persons(self, image):
 
         self._setup_yolo_nn(self.yolo_config_path, self.yolo_weights_path)
         self.last_layer_names = self._get_outputs_names()
@@ -74,24 +78,37 @@ class Yolo:
                     # adjusting box dimensions to picture dimensions
                     box = detection[:4] * np.array([w, h, w, h])
                     (centerX, centerY, width, height) = box.astype("int")
-                    x = int(centerX - (width / 2))
-                    y = int(centerY - (height / 2))
-                    box = [x, y, int(width), int(height)]
+                    left = int(centerX - (width / 2))
+                    top = int(centerY - (height / 2))
+                    box = [left, top, width, height]
                     boxes.append(box)
                     confidences.append(float(confidence))
                     classIDs.append(classID)
 
         indices = Yolo._non_maximum_suppression(boxes, confidences, conf_threshold, nms_threshold)
+        person_boxes = []
 
         if len(indices) > 0:
-            for i in indices.flatten():
-                # get box dimensions
-                (left, top) = (boxes[i][0], boxes[i][1])
-                (width, height) = (boxes[i][2], boxes[i][3])
-                # draw boxes with confidence
-                cv.rectangle(image, (left, top), (left + width, top + height), GREEN, 2)
-                text = "{}: {:.4f}".format(self.class_names[classIDs[i]], confidences[i])
-                cv.putText(image, text, (left, top - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 1)
+            for i in indices:
+                # if a person is detected
+                if classIDs[i] == 0:
+                    # get box dimensions
+                    (left, top) = (boxes[i][0], boxes[i][1])
+                    (width, height) = (boxes[i][2], boxes[i][3])
+
+                    # add new boxes that belong to persons
+                    person_boxes.append((left, top, width, height))
+                    centers_dict = self.pt.update(person_boxes)
+
+                    for (objectID, centroid) in centers_dict.items():
+                        text = "ID {}".format(objectID)
+                        cv.putText(image, text, (int(centroid[0]) - 10, int(centroid[1]) - 10),
+                                    cv.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 2)
+                        cv.circle(image, (int(centroid[0]), int(centroid[1])), 4, GREEN, -1)
+
+                    cv.rectangle(image, (left, top), (left + width, top + height), GREEN, 2)
+                    text = "{}: {:.4f}".format(self.class_names[classIDs[i]], confidences[i])
+                    cv.putText(image, text, (left, top - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 1)
 
         return image
 
@@ -104,40 +121,31 @@ class Yolo:
 
 
 def main():
-    img = cv.imread('horse.jpg')
+    cap = cv.VideoCapture("test.mp4")
+    previous_time = 0
     yolo = Yolo()
-    img = yolo.find_objects(img)
-    cv.imshow('OK', img)
-    cv.waitKey(0)
 
+    while cap.isOpened():
+        # reading the image from video capture
+        _, img = cap.read()
+
+        img = yolo.find_persons(img)
+
+        previous_time = display_fps(img, previous_time)
+
+        cv.imshow('detector', img)
+
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv.destroyAllWindows()
 
 
 if __name__ == '__main__':
     main()
-    input()
-    cv.destroyAllWindows()
-# cap = cv.VideoCapture(0)
-#
-# while cap.isOpened():
-#     # reading the image from video capture
-#     _, img = cap.read()
+
+
 
 # np.array.shape -> (3, 2) -> první vrstva má v sobě 3 buňky, každá z těch 3 má v sobě pak 2 buňky
 
-# def trackbar(x, image, nn_results):
-#     img_shape_x = 416
-#     img_shape_y = 416
-#
-#     confidence = x/100
-#     for result in np.vstack(nn_results):
-#         # result[4] -> confidence of the box
-#         if result[4] > confidence:
-#             x, y, w, h = result[:4]
-#             p0 = int((x-w/2)*img_shape_x), int((y-h/2)*img_shape_x)
-#             p1 = int((x+w/2)*img_shape_y), int((y+h/2)*img_shape_y)
-#             cv.rectangle(image, p0, p1, 1, 1)
-#     cv.imshow('image', image)
-#     cv.waitKey(1)
-
-
-# trackbar(50, img, results)
