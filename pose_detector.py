@@ -112,7 +112,6 @@ def main():
         img = detector.init_landmarks(img)
 
         pose_list = detector.get_landmarks(img)
-        detector.detect_angle(img, 12, 14, 16)
 
         previous_time = display_fps(img, previous_time)
 

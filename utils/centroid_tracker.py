@@ -14,7 +14,7 @@ class PersonCenterTracker:
         self.persons_centers_dict = OrderedDict()
         self.disappeared_dict = OrderedDict()
 
-    def register(self, person_center):
+    def _register(self, person_center):
         # assign new person center
         self.persons_centers_dict[self.nextID] = person_center
         # reset disappeared countdown
@@ -22,7 +22,7 @@ class PersonCenterTracker:
         # update ID
         self.nextID += 1
 
-    def deregister(self, ID):
+    def _deregister(self, ID):
         # delete person from register
         del self.persons_centers_dict[ID]
         del self.disappeared_dict[ID]
@@ -35,7 +35,7 @@ class PersonCenterTracker:
                 self.disappeared_dict[ID] += 1
                 # if person has disappeared more than the threshold is, delete them
                 if self.disappeared_dict[ID] >= self.max_disappeared:
-                    self.deregister(ID)
+                    self._deregister(ID)
 
             return self.persons_centers_dict
 
@@ -49,7 +49,7 @@ class PersonCenterTracker:
         # if we haven't registered any new persons yet, register the new persons centers
         if len(self.persons_centers_dict) == 0:
             for row in range(0, len(new_persons_centers)):
-                self.register(new_persons_centers[row])
+                self._register(new_persons_centers[row])
 
         # else calculate the distances between points and assign new coordinates to persons centers
         else:
@@ -92,10 +92,10 @@ class PersonCenterTracker:
                     self.disappeared_dict[objectID] += 1
 
                     if self.disappeared_dict[objectID] > self.max_disappeared:
-                        self.deregister(objectID)
+                        self._deregister(objectID)
             else:
                 for col in unusedCols:
-                    self.register(new_persons_centers[col])
+                    self._register(new_persons_centers[col])
 
             # return the set of trackable objects
         return self.persons_centers_dict

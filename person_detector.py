@@ -15,6 +15,7 @@ class Yolo:
 
         self.last_layer_names = ""
         self.results = None
+        self.centers_dict = None
         self.inp_width = inp_width
         self.inp_height = inp_height
         self.yolo_weights_path = yolo_weights_path
@@ -63,7 +64,6 @@ class Yolo:
     def _post_process(self, image, conf_threshold, nms_threshold):
 
         h, w = image.shape[:2]
-        GREEN = (0, 255, 0)
 
         boxes = []
         confidences = []
@@ -98,17 +98,12 @@ class Yolo:
 
                     # add new boxes that belong to persons
                     person_boxes.append((left, top, width, height))
-                    centers_dict = self.pt.update(person_boxes)
+                    self.centers_dict = self.pt.update(person_boxes)
 
-                    for (objectID, centroid) in centers_dict.items():
-                        text = "ID {}".format(objectID)
-                        cv.putText(image, text, (int(centroid[0]) - 10, int(centroid[1]) - 10),
-                                    cv.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 2)
-                        cv.circle(image, (int(centroid[0]), int(centroid[1])), 4, GREEN, -1)
+                    for (objectID, centroid) in self.centers_dict.items():
+                        image = Yolo._draw_id(image, objectID, centroid)
 
-                    cv.rectangle(image, (left, top), (left + width, top + height), GREEN, 2)
-                    text = "{}: {:.4f}".format(self.class_names[classIDs[i]], confidences[i])
-                    cv.putText(image, text, (left, top - 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 1)
+                    image = Yolo._draw_boxes(image, left, top, width, height)
 
         return image
 
@@ -118,6 +113,24 @@ class Yolo:
         # removes the boxes that overlap, and have low confidence, until it creates the right one etc.
         indices = cv.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
         return indices
+
+    @staticmethod
+    def _draw_id(image, objectID, centroid):
+        GREEN = (0, 255, 0)
+        text = "ID {}".format(objectID)
+        cv.putText(image, text, (int(centroid[0]) - 10, int(centroid[1]) - 10),
+                   cv.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 2)
+        cv.circle(image, (int(centroid[0]), int(centroid[1])), 4, GREEN, -1)
+        return image
+
+    @staticmethod
+    def _draw_boxes(image, left, top, width, height):
+        GREEN = (0, 255, 0)
+        cv.rectangle(image, (left, top), (left + width, top + height), GREEN, 2)
+        return image
+
+    def get_center(self, ID):
+        return self.centers_dict[ID]
 
 
 def main():
