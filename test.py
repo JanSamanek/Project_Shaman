@@ -1,46 +1,42 @@
-import numpy as np
-from scipy.spatial import distance
-import math
-
-coords = [(0, 0),
-          (-7, 2),
-          (4, 2),
-          (5, 3)]
-
-coords1 = [(1, 0),
-           (-9, -1),
-           (8,1),
-           (-3, 4)]
-
-D = distance.cdist(np.array(coords), np.array(coords1))
-
-rows_min_i = D.argmin(axis=1)
-columns_min_i = D.argmin(axis=0)
+import torch
+import cv2 as cv
+from pose_detector import display_fps
 
 
-row_len = D.shape[0]
-column_len = D.shape[1]
+def _draw_boxes(image, left, top, width, height):
+    GREEN = (0, 255, 0)
+    cv.rectangle(image, (left, top), (width, height), GREEN, 2)
+    return image
 
-used_rows = set()
-used_columns = set()
+# Model
 
-print(D)
-print(rows_min_i)
-print(columns_min_i)
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
-for row in range(0, row_len):
-    row_min_i = rows_min_i[row]
-    # column where the minimum of the row is
-    column = row_min_i
-    column_min_i = columns_min_i[row]
-    if row_min_i == column_min_i:
-        # link points together
-        used_columns.add(column)
-        used_rows.add(row)
+cap = cv.VideoCapture("test.mp4")
+previous_time = 0
 
+while cap.isOpened():
+    # reading the image from video capture
+    _, img = cap.read()
 
-print(D)
-print(used_rows)
-print(used_columns)
+    previous_time = display_fps(img, previous_time)
 
+    results = model(img)
 
+    pd_table = results.pandas().xyxy[0]
+
+    # extracting person data
+    pd_table = pd_table.loc[pd_table['name'] == 'person']
+    print(pd_table)
+
+    for index, row in pd_table.iterrows():
+
+        _draw_boxes(img, int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax']))
+
+    cv.imshow('detector', img)
+
+    if cv.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv.destroyAllWindows()
