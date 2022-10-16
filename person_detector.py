@@ -1,49 +1,118 @@
 import cv2 as cv
-from center_tracker import PersonCenterTracker
+import numpy as np
+from utils.centroid_tracker import PersonCenterTracker
 from pose_detector import display_fps
-import torch
 
 
 class Yolo:
 
-    def __init__(self, yolov5='yolov5s'):
-        self.model = torch.hub.load('ultralytics/yolov5', yolov5)
+    def __init__(self, inp_width=416, inp_height=416,
+                 yolo_weights_path='./yolo_nn/yolov3-tiny.weights'
+                 , yolo_config_path='./yolo_nn/yolov3-tiny.cfg'):
+
+        with open("yolo_nn/coco.names", 'r') as file:
+            self.class_names = file.read().strip().split('\n')
+
+        self.last_layer_names = ""
         self.results = None
-        self.pd_table = None
-        self.centers = None
+        self.centers_dict = None
+        self.inp_width = inp_width
+        self.inp_height = inp_height
+        self.yolo_weights_path = yolo_weights_path
+        self.yolo_config_path = yolo_config_path
         self.pt = PersonCenterTracker()
+        self.trackable_objects = {}
 
-    def predict(self, img):
-        self.results = self.model(img)
-        self.pd_table = self.results.pandas().xyxy[0]
+    def find_persons(self, image):
 
-    def post_process(self):
-        self.pd_table = self.pd_table.loc[self.pd_table['name'] == 'person']
-        boxes = []
-
-        for index, row in self.pd_table.iterrows():
-            x_min,  y_min, x_max, y_max = int(row['xmin']),  int(row['ymin']), int(row['xmax']), int(row['ymax'])
-            # append box
-            boxes.append((x_min, y_min, x_max, y_max))
-
-        return boxes
-
-    def track(self, img, draw_box=True):
-
-        self.predict(img)
-
-        boxes = self.post_process()
-
-        if draw_box:
-            for box in boxes:
-                Yolo._draw_boxes(img, *box)
-
-        self.centers = self.pt.update(boxes)
-
-        for (objectID, centroid) in self.centers.items():
-            img = Yolo._draw_id(img, objectID, centroid)
+        self._setup_yolo_nn(self.yolo_config_path, self.yolo_weights_path)
+        self.last_layer_names = self._get_outputs_names()
+        blob = self._preprocess_img(image)
+        self.results = self._predict(blob)
+        img = self._post_process(image, 0.5, 0.4)
 
         return img
+
+    def _setup_yolo_nn(self, yolo_config, yolo_weights):
+        self.yolo_net = cv.dnn.readNetFromDarknet(yolo_config, yolo_weights)
+        self.yolo_net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
+        self.yolo_net.setPreferableTarget(cv.dnn.DNN_TARGET_CPU)
+
+    def _get_outputs_names(self):
+        # Get the names of all the layers in the network
+        layer_names = self.yolo_net.getLayerNames()
+        # get the names of the output layers, i.e. the layers with unconnected outputs
+        return [layer_names[i - 1] for i in self.yolo_net.getUnconnectedOutLayers()]
+
+    def _preprocess_img(self, image):
+        # preprocesses the image
+        # blob is a 4D numpy array object (images, channels, width, height)
+        return cv.dnn.blobFromImage(image, 1/255.0, (self.inp_width, self.inp_height), swapRB=True, crop=False)
+
+    def _predict(self, blob):
+        # feeds the preprocessed image to the nn
+        self.yolo_net.setInput(blob)
+
+        # executes the prediction
+        # The outputs object are vectors of length 85
+        # 4x the bounding box (center_x, center_y, width, height)
+        # 1x box confidence
+        # 80x class confidence
+        results = self.yolo_net.forward(self.last_layer_names)
+        return results
+
+    def _post_process(self, image, conf_threshold, nms_threshold):
+
+        h, w = image.shape[:2]
+
+        boxes = []
+        confidences = []
+        classIDs = []
+
+        for result in self.results:
+            for detection in result:
+                scores = detection[5:]
+                classID = np.argmax(scores)
+                confidence = scores[classID]
+                if confidence > conf_threshold:
+                    # adjusting box dimensions to picture dimensions
+                    box = detection[:4] * np.array([w, h, w, h])
+                    (centerX, centerY, width, height) = box.astype("int")
+                    left = int(centerX - (width / 2))
+                    top = int(centerY - (height / 2))
+                    box = [left, top, width, height]
+                    boxes.append(box)
+                    confidences.append(float(confidence))
+                    classIDs.append(classID)
+
+        indices = Yolo._non_maximum_suppression(boxes, confidences, conf_threshold, nms_threshold)
+        person_boxes = []
+
+        if len(indices) > 0:
+            for i in indices:
+                # if a person is detected
+                if classIDs[i] == 0:
+                    # get box dimensions
+                    (left, top) = (boxes[i][0], boxes[i][1])
+                    (width, height) = (boxes[i][2], boxes[i][3])
+
+                    # add new boxes that belong to persons
+                    person_boxes.append((left, top, width, height))
+                    self.centers_dict = self.pt.update(person_boxes)
+
+                    for (objectID, centroid) in self.centers_dict.items():
+                        image = Yolo._draw_id(image, objectID, centroid)
+
+                    image = Yolo._draw_boxes(image, left, top, width, height)
+
+        return image
+
+    @staticmethod
+    def _non_maximum_suppression(boxes, confidences, conf_threshold, nms_threshold):
+        # NON-MAXIMUM-SUPPRESSION
+        # removes the boxes that overlap, and have low confidence, until it creates the right one etc.
+        indices = cv.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
+        return indices
 
     @staticmethod
     def _draw_id(image, objectID, centroid):
@@ -55,13 +124,13 @@ class Yolo:
         return image
 
     @staticmethod
-    def _draw_boxes(image, x_min, y_min, x_max, y_max):
+    def _draw_boxes(image, left, top, width, height):
         GREEN = (0, 255, 0)
-        cv.rectangle(image, (x_min, y_min), (x_max, y_max), GREEN, 2)
+        cv.rectangle(image, (left, top), (left + width, top + height), GREEN, 2)
         return image
 
     def get_center(self, ID):
-        return self.centers[ID]
+        return self.centers_dict[ID]
 
 
 def main():
@@ -73,9 +142,9 @@ def main():
         # reading the image from video capture
         _, img = cap.read()
 
-        previous_time = display_fps(img, previous_time)
+        img = yolo.find_persons(img)
 
-        img = yolo.track(img)
+        previous_time = display_fps(img, previous_time)
 
         cv.imshow('detector', img)
 
