@@ -6,19 +6,22 @@ import torch
 
 class Yolo:
 
-    def __init__(self, yolov5='yolov5s'):
-        self.model = torch.hub.load('ultralytics/yolov5', yolov5)
+    def __init__(self):
+        self.model = torch.hub.load('ultralytics/yolov5',
+                                    'custom',
+                                    path=r"C:\Users\jands\Project_Shaman\yolov5\runs\train\exp3\weights\best.pt")
+        self.model.conf = 0.5
         self.results = None
         self.pd_table = None
         self.centers = None
         self.pt = PersonCenterTracker()
 
-    def predict(self, img):
+    def _predict(self, img):
         self.results = self.model(img)
         self.pd_table = self.results.pandas().xyxy[0]
 
-    def post_process(self):
-        self.pd_table = self.pd_table.loc[self.pd_table['name'] == 'person']
+    def _post_process(self):
+        # process only persons
         boxes = []
 
         for index, row in self.pd_table.iterrows():
@@ -30,9 +33,9 @@ class Yolo:
 
     def track(self, img, draw_box=True):
 
-        self.predict(img)
+        self._predict(img)
 
-        boxes = self.post_process()
+        boxes = self._post_process()
 
         if draw_box:
             for box in boxes:
@@ -88,8 +91,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-# np.array.shape -> (3, 2) -> první vrstva má v sobě 3 buňky, každá z těch 3 má v sobě pak 2 buňky
-

@@ -1,0 +1,10 @@
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+
+path: 'C:\Users\jands\fiftyone\coco-2017'  # dataset root dir
+train: 'C:\Users\jands\fiftyone\coco-2017\train\images'  # train images
+val: 'C:\Users\jands\fiftyone\coco-2017\train\images'  # val images
+
+nc: 1
+
+# Classes
+names: ['person']

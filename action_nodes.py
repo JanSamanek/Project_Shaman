@@ -1,25 +1,20 @@
-from pose_detector import PoseDetector
 from flow_nodes import NodeStates, Node, Fallback
 import cv2 as cv
 
 
 class RightHandAboveCheck(Node):
 
-    def __init__(self, *children_nodes, cap):
+    def __init__(self, *children_nodes, detector):
         super().__init__(*children_nodes)
-        self.cap = cap
-        self.detector = PoseDetector()
+        self.img = None
+        self.detector = detector
 
     def evaluate(self):
+        self.img = self.get_data("img")
 
-        # reading the image from video capture
-        _, img = self.cap.read()
+        self.img = self.detector.init_landmarks(self.img)
 
-        img = self.detector.init_landmarks(img)
-
-        self.detector.get_landmarks(img)
-
-        cv.waitKey(1)
+        self.detector.get_landmarks(self.img)
 
         if self.detector.detect_right_hand_above_nose():
             print("Right Hand: Success")
@@ -31,21 +26,17 @@ class RightHandAboveCheck(Node):
 
 class LeftHandAboveCheck(Node):
 
-    def __init__(self, *children_nodes, cap):
+    def __init__(self, *children_nodes, detector):
         super().__init__(*children_nodes)
-        self.cap = cap
-        self.detector = PoseDetector()
+        self.detector = detector
+        self.img = None
 
     def evaluate(self):
+        self.img = self.get_data("img")
 
-        # reading the image from video capture
-        _, img = self.cap.read()
+        self.img = self.detector.init_landmarks(self.img)
 
-        img = self.detector.init_landmarks(img)
-
-        self.detector.get_landmarks(img)
-
-        cv.waitKey(1)
+        self.detector.get_landmarks(self.img)
 
         if self.detector.detect_left_hand_above_nose():
             print("Left Hand: Success")
@@ -55,13 +46,16 @@ class LeftHandAboveCheck(Node):
             return NodeStates.FAILURE
 
 
-# # error when inside a flow node
-# # can't open more video captures in the same time
-# vcap = cv.VideoCapture(0)
-#
-# root = Fallback(
-#     RightHandAboveCheck(cap=vcap),
-#     LeftHandAboveCheck(cap=vcap)
-# )
-# while True:
-#     root.evaluate()
+class CameraCapture(Node):
+    def __init__(self, *children_nodes):
+        super().__init__(*children_nodes)
+        self.cap = cv.VideoCapture(0)
+
+    def evaluate(self):
+        success, img = self.cap.read()
+
+        if success:
+            self.parent.set_data("img", img)
+            return NodeStates.SUCCESS
+        else:
+            return NodeStates.FAILURE

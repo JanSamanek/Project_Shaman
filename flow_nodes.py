@@ -30,14 +30,14 @@ class Node:
 
         value_to_get = self._data_context.get(key, None)
 
-        if value_to_get:
+        if value_to_get is not None:
             return value_to_get
 
         next_node_to_inspect = self.parent
 
         while next_node_to_inspect:
             value_to_get = next_node_to_inspect.get_data(key)
-            if value_to_get:
+            if value_to_get is not None:
                 return value_to_get
             next_node_to_inspect = next_node_to_inspect.parent
 
