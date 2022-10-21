@@ -13,30 +13,26 @@ class PersonCenterTracker:
 
         self.nextID = 0
         self.to_dict = OrderedDict()
-        self.disappeared_dict = OrderedDict()
 
     def _register(self, person_center):
         # assign new person center
         self.to_dict[self.nextID] = TrackableObject(*person_center, self.nextID)
-        # reset disappeared countdown
-        self.disappeared_dict[self.nextID] = 0
         # update ID
         self.nextID += 1
 
     def _deregister(self, ID):
         # delete person from register
         del self.to_dict[ID]
-        del self.disappeared_dict[ID]
 
     def update(self, boxes):
         # if no boxes are present
         if len(boxes) == 0:
             # loop over the keys and mark persons as disappeared
-            for ID in self.disappeared_dict.keys():
-                self.disappeared_dict[ID] += 1
+            for to in self.to_dict:
+                to.disappeared_count += 1
                 # if person has disappeared more than the threshold is, delete them
-                if self.disappeared_dict[ID] >= self.max_disappeared:
-                    self._deregister(ID)
+                if to.disappeared_count >= self.max_disappeared:
+                    self._deregister(to.id)
 
             return self.to_dict
 
@@ -55,12 +51,11 @@ class PersonCenterTracker:
         # else calculate the distances between points and assign new coordinates to persons centers
         else:
             # grab the set of object IDs and corresponding centroids
-            objectIDs = list(self.to_dict.keys())
+            objectIDs = [to.ID for to in self.to_dict.values()]
             # objectCentroids = [to.predict() for to in self.to_dict.values()]   # list(self.to_dict.values())
             for to in self.to_dict.values():
                 to.predict()
             predicted_centroids = [to.predicted_centroid for to in self.to_dict.values()]
-            #####xxxxxxxxxxxxxxxxx############
 
             D = dist.cdist(np.array(predicted_centroids), new_persons_centers)
 
@@ -82,7 +77,7 @@ class PersonCenterTracker:
 
                 objectID = objectIDs[row]
                 self.to_dict[objectID].centroid = new_persons_centers[col]
-                self.disappeared_dict[objectID] = 0
+                self.to_dict[objectID].disappeared_count = 0
 
                 usedRows.add(row)
                 usedCols.add(col)
@@ -94,9 +89,9 @@ class PersonCenterTracker:
                 # loop over the unused row indexes
                 for row in unusedRows:
                     objectID = objectIDs[row]
-                    self.disappeared_dict[objectID] += 1
+                    self.to_dict[objectID].disappeared_count += 1
 
-                    if self.disappeared_dict[objectID] > self.max_disappeared:
+                    if self.to_dict[objectID].disappeared_count > self.max_disappeared:
                         self._deregister(objectID)
             else:
                 for col in unusedCols:
