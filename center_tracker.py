@@ -1,22 +1,23 @@
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
+from trackable_object import TrackableObject
 
 
 class PersonCenterTracker:
 
-    def __init__(self, max_disappeared=50, max_distance=50):
+    def __init__(self, max_disappeared=50, max_distance=80):
 
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
 
         self.nextID = 0
-        self.persons_centers_dict = OrderedDict()
+        self.to_dict = OrderedDict()
         self.disappeared_dict = OrderedDict()
 
     def _register(self, person_center):
         # assign new person center
-        self.persons_centers_dict[self.nextID] = person_center
+        self.to_dict[self.nextID] = TrackableObject(*person_center, self.nextID)
         # reset disappeared countdown
         self.disappeared_dict[self.nextID] = 0
         # update ID
@@ -24,7 +25,7 @@ class PersonCenterTracker:
 
     def _deregister(self, ID):
         # delete person from register
-        del self.persons_centers_dict[ID]
+        del self.to_dict[ID]
         del self.disappeared_dict[ID]
 
     def update(self, boxes):
@@ -37,7 +38,7 @@ class PersonCenterTracker:
                 if self.disappeared_dict[ID] >= self.max_disappeared:
                     self._deregister(ID)
 
-            return self.persons_centers_dict
+            return self.to_dict
 
         # if new boxes present initialize new_persons_centers
         new_persons_centers = np.zeros((len(boxes), 2))
@@ -47,17 +48,21 @@ class PersonCenterTracker:
             new_persons_centers[row] = center
 
         # if we haven't registered any new persons yet, register the new persons centers
-        if len(self.persons_centers_dict) == 0:
+        if len(self.to_dict) == 0:
             for row in range(0, len(new_persons_centers)):
                 self._register(new_persons_centers[row])
 
         # else calculate the distances between points and assign new coordinates to persons centers
         else:
             # grab the set of object IDs and corresponding centroids
-            objectIDs = list(self.persons_centers_dict.keys())
-            objectCentroids = list(self.persons_centers_dict.values())
+            objectIDs = list(self.to_dict.keys())
+            # objectCentroids = [to.predict() for to in self.to_dict.values()]   # list(self.to_dict.values())
+            for to in self.to_dict.values():
+                to.predict()
+            predicted_centroids = [to.predicted_centroid for to in self.to_dict.values()]
+            #####xxxxxxxxxxxxxxxxx############
 
-            D = dist.cdist(np.array(objectCentroids), new_persons_centers)
+            D = dist.cdist(np.array(predicted_centroids), new_persons_centers)
 
             rows = D.min(axis=1).argsort()
 
@@ -76,7 +81,7 @@ class PersonCenterTracker:
                     continue
 
                 objectID = objectIDs[row]
-                self.persons_centers_dict[objectID] = new_persons_centers[col]
+                self.to_dict[objectID].centroid = new_persons_centers[col]
                 self.disappeared_dict[objectID] = 0
 
                 usedRows.add(row)
@@ -98,10 +103,10 @@ class PersonCenterTracker:
                     self._register(new_persons_centers[col])
 
             # return the set of trackable objects
-        return self.persons_centers_dict
+        return self.to_dict
 
 
 def _calculate_center(start_x, start_y, end_x, end_y):
-    center_x = int((start_x + end_x) / 2.0)
-    center_y = int((start_y + end_y) / 2.0)
+    center_x = (start_x + end_x) / 2.0
+    center_y = (start_y + end_y) / 2.0
     return center_x, center_y

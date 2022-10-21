@@ -13,7 +13,7 @@ class Yolo:
         self.model.conf = 0.5
         self.results = None
         self.pd_table = None
-        self.centers = None
+        self.trackable_objects = None
         self.pt = PersonCenterTracker()
 
     def _predict(self, img):
@@ -41,16 +41,17 @@ class Yolo:
             for box in boxes:
                 Yolo._draw_boxes(img, *box)
 
-        self.centers = self.pt.update(boxes)
+        self.trackable_objects = self.pt.update(boxes)
 
-        for (objectID, centroid) in self.centers.items():
-            img = Yolo._draw_id(img, objectID, centroid)
+        for to in self.trackable_objects.values():
+            img = Yolo._draw_id(img, to.ID, to.centroid, (0, 255, 0))
+            img = Yolo._draw_id(img, to.ID, to.predicted_centroid, (255, 0, 0))
 
         return img
 
     @staticmethod
-    def _draw_id(image, objectID, centroid):
-        GREEN = (0, 255, 0)
+    def _draw_id(image, objectID, centroid, color):
+        GREEN = color
         text = "ID {}".format(objectID)
         cv.putText(image, text, (int(centroid[0]) - 10, int(centroid[1]) - 10),
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, GREEN, 2)
@@ -64,7 +65,7 @@ class Yolo:
         return image
 
     def get_center(self, ID):
-        return self.centers[ID]
+        return self.trackable_objects[ID]
 
 
 def main():
@@ -79,6 +80,43 @@ def main():
         previous_time = display_fps(img, previous_time)
 
         img = yolo.track(img)
+
+        cv.imshow('detector', img)
+
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv.destroyAllWindows()
+
+
+def _draw_boxes(image, x_min, y_min, x_max, y_max):
+    GREEN = (0, 255, 0)
+    cv.rectangle(image, (x_min, y_min), (x_max, y_max), GREEN, 2)
+    return image
+
+
+def test():
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path="yolov5/runs/train/exp3/weights/best.pt")
+# model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+    model.conf = 0.45
+
+    cap = cv.VideoCapture("test.mp4")
+    previous_time = 0
+
+    while cap.isOpened():
+        # reading the image from video capture
+        _, img = cap.read()
+
+        previous_time = display_fps(img, previous_time)
+
+        results = model(img)
+
+        pd_table = results.pandas().xyxy[0]
+
+        for index, row in pd_table.iterrows():
+
+            img = _draw_boxes(img, int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax']))
 
         cv.imshow('detector', img)
 
