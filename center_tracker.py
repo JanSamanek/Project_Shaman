@@ -4,15 +4,16 @@ import numpy as np
 from trackable_object import TrackableObject
 
 
-class PersonCenterTracker:
+class PersonTracker:
 
-    def __init__(self, max_disappeared=50, max_distance=80):
+    def __init__(self, centre_to, max_disappeared=50, max_distance=80):
 
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
 
         self.nextID = 0
         self.to_dict = OrderedDict()
+        self._register(centre_to)
 
     def _register(self, person_center):
         # assign new person center
@@ -36,68 +37,74 @@ class PersonCenterTracker:
 
             return self.to_dict
 
-        # if new boxes present initialize new_persons_centers
-        new_persons_centers = np.zeros((len(boxes), 2))
+        # if new boxes present initialize new_centers
+        new_centers = np.zeros((len(boxes), 2))
+        center_box_dict = {} # TODO ?
         # calculates the centre and assigns in to the new_persons_center variable
-        for row, (left, top, width, height) in enumerate(boxes):
-            center = _calculate_center(left, top, width, height)
-            new_persons_centers[row] = center
-
+        for i, box in enumerate(boxes):
+            centroid = _calculate_center(*box)
+            new_centers[i] = centroid
+            center_box_dict[tuple(centroid)] = box # TODO ?
         # if we haven't registered any new persons yet, register the new persons centers
         if len(self.to_dict) == 0:
-            for row in range(0, len(new_persons_centers)):
-                self._register(new_persons_centers[row])
-
+            for i in range(0, len(new_centers)):
+                self._register(new_centers[i])
         # else calculate the distances between points and assign new coordinates to persons centers
         else:
             # grab the set of object IDs and corresponding centroids
-            objectIDs = [to.ID for to in self.to_dict.values()]
-            # objectCentroids = [to.predict() for to in self.to_dict.values()]   # list(self.to_dict.values())
-            for to in self.to_dict.values():
-                to.predict()
-            predicted_centroids = [to.predicted_centroid for to in self.to_dict.values()]
+            IDs = [to.ID for to in self.to_dict.values()]
+            # predicted_centroids = [to.predict() for to in self.to_dict.values()]
+            to_centroids = [to.centroid for to in self.to_dict.values()]
 
-            D = dist.cdist(np.array(predicted_centroids), new_persons_centers)
+            # D = dist.cdist(np.array(predicted_centroids), new_centers)
+            D = dist.cdist(np.array(to_centroids), new_centers)
 
             rows = D.min(axis=1).argsort()
 
             cols = D.argmin(axis=1)[rows]
 
-            usedRows = set()
-            usedCols = set()
+            used_rows = set()
+            used_cols = set()
 
             # loop over the combination of the (row, column) index tuples
             for (row, col) in zip(rows, cols):
 
-                if row in usedRows or col in usedCols:
+                if row in used_rows or col in used_cols:
                     continue
 
                 if D[row, col] > self.max_distance:
                     continue
 
-                objectID = objectIDs[row]
-                self.to_dict[objectID].centroid = new_persons_centers[col]
-                self.to_dict[objectID].disappeared_count = 0
+                ID = IDs[row]
+                to = self.to_dict[ID]
+                to.centroid = new_centers[col]
+                to.disappeared_count = 0
 
-                usedRows.add(row)
-                usedCols.add(col)
+                used_rows.add(row)
+                used_cols.add(col)
 
-            unusedRows = set(range(0, D.shape[0])).difference(usedRows)
-            unusedCols = set(range(0, D.shape[1])).difference(usedCols)
+            unused_rows = set(range(0, D.shape[0])).difference(used_rows)
+            unused_cols = set(range(0, D.shape[1])).difference(used_cols)
 
             if D.shape[0] >= D.shape[1]:
                 # loop over the unused row indexes
-                for row in unusedRows:
-                    objectID = objectIDs[row]
-                    self.to_dict[objectID].disappeared_count += 1
+                for row in unused_rows:
+                    ID = IDs[row]
+                    to = self.to_dict[ID]
+                    # to.centroid = to.predict()    # TODO ?
+                    to.disappeared_count += 1
 
-                    if self.to_dict[objectID].disappeared_count > self.max_disappeared:
-                        self._deregister(objectID)
+                    if to.disappeared_count > self.max_disappeared:
+                        self._deregister(ID)
             else:
-                for col in unusedCols:
-                    self._register(new_persons_centers[col])
+                for col in unused_cols:
+                    self._register(new_centers[col])
 
-            # return the set of trackable objects
+            # assign box to trackable object
+            for to in self.to_dict.values():
+                if to.disappeared_count == 0:
+                    to.box = center_box_dict[tuple(to.centroid)]
+
         return self.to_dict
 
 

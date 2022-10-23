@@ -1,20 +1,20 @@
 from flow_nodes import NodeStates, Node, Fallback
 import cv2 as cv
+from yolo_nn import Yolo
 
 
 class RightHandAboveCheck(Node):
 
     def __init__(self, *children_nodes, detector):
         super().__init__(*children_nodes)
-        self.img = None
         self.detector = detector
 
     def evaluate(self):
-        self.img = self.get_data("img")
+        img = self.get_data("img")
 
-        self.img = self.detector.init_landmarks(self.img)
+        img = self.detector.init_landmarks(img)
 
-        self.detector.get_landmarks(self.img)
+        self.detector.get_landmarks(img)
 
         if self.detector.detect_right_hand_above_nose():
             print("Right Hand: Success")
@@ -29,14 +29,13 @@ class LeftHandAboveCheck(Node):
     def __init__(self, *children_nodes, detector):
         super().__init__(*children_nodes)
         self.detector = detector
-        self.img = None
 
     def evaluate(self):
-        self.img = self.get_data("img")
+        img = self.get_data("img")
 
-        self.img = self.detector.init_landmarks(self.img)
+        img = self.detector.init_landmarks(img)
 
-        self.detector.get_landmarks(self.img)
+        self.detector.get_landmarks(img)
 
         if self.detector.detect_left_hand_above_nose():
             print("Left Hand: Success")
@@ -56,6 +55,32 @@ class CameraCapture(Node):
 
         if success:
             self.parent.set_data("img", img)
+            return NodeStates.SUCCESS
+        else:
+            return NodeStates.FAILURE
+
+
+class TrackPerson(Node):
+    def __init__(self, *children_nodes):
+        super().__init__(*children_nodes)
+        self.yolo = None
+
+    def evaluate(self):
+        img = self.get_data("img")
+
+        if self.yolo is not None:
+            img = self.yolo.track(img)
+
+        if 0xFF == ord('s'):
+            tb_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
+            self.yolo = Yolo(tb_box)
+            cv.destroyAllWindows()
+
+        if self.yolo.tracked_to is not None:
+            self.parent.set_data("center", self.yolo.tracked_to.centroid)
+            tracked_box = self.yolo.tracked_to.box
+            cropped_img = self.yolo.crop_im(img, *tracked_box)
+            self.parent.set_data("cropped_img", cropped_img)
             return NodeStates.SUCCESS
         else:
             return NodeStates.FAILURE
