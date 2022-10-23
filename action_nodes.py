@@ -68,19 +68,22 @@ class TrackPerson(Node):
     def evaluate(self):
         img = self.get_data("img")
 
+        if cv.waitKey(10) & 0xFF == ord('s'):
+            init_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
+            self.yolo = Yolo(init_box)
+            cv.destroyWindow("Select object for tracking")
+
         if self.yolo is not None:
             img = self.yolo.track(img)
-
-        if 0xFF == ord('s'):
-            tb_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
-            self.yolo = Yolo(tb_box)
-            cv.destroyAllWindows()
-
-        if self.yolo.tracked_to is not None:
-            self.parent.set_data("center", self.yolo.tracked_to.centroid)
-            tracked_box = self.yolo.tracked_to.box
-            cropped_img = self.yolo.crop_im(img, *tracked_box)
-            self.parent.set_data("cropped_img", cropped_img)
+            if self.yolo.tracked_to.box is not None:
+                self.parent.set_data("center", self.yolo.tracked_to.centroid)
+                tracked_box = self.yolo.tracked_to.box
+                cropped_img = self.yolo.crop_im(img, *tracked_box)
+                cv.imshow("cropped", cropped_img)  # TODO ?
+                cv.waitKey(10)
+                self.parent.set_data("cropped_img", cropped_img)
             return NodeStates.SUCCESS
         else:
+            cv.imshow('detector', img)
+            cv.waitKey(100)
             return NodeStates.FAILURE

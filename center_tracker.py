@@ -29,7 +29,7 @@ class PersonTracker:
         # if no boxes are present
         if len(boxes) == 0:
             # loop over the keys and mark persons as disappeared
-            for to in self.to_dict:
+            for to in self.to_dict.values():
                 to.disappeared_count += 1
                 # if person has disappeared more than the threshold is, delete them
                 if to.disappeared_count >= self.max_disappeared:
@@ -45,6 +45,7 @@ class PersonTracker:
             centroid = _calculate_center(*box)
             new_centers[i] = centroid
             center_box_dict[tuple(centroid)] = box # TODO ?
+
         # if we haven't registered any new persons yet, register the new persons centers
         if len(self.to_dict) == 0:
             for i in range(0, len(new_centers)):
