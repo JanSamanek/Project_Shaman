@@ -33,18 +33,18 @@ class PersonTracker:
                 to.disappeared_count += 1
                 # if person has disappeared more than the threshold is, delete them
                 if to.disappeared_count >= self.max_disappeared:
-                    self._deregister(to.id)
+                    self._deregister(to.ID)
 
             return self.to_dict
 
         # if new boxes present initialize new_centers
         new_centers = np.zeros((len(boxes), 2))
-        center_box_dict = {} # TODO ?
+        center_box_dict = {}
         # calculates the centre and assigns in to the new_persons_center variable
         for i, box in enumerate(boxes):
             centroid = _calculate_center(*box)
             new_centers[i] = centroid
-            center_box_dict[tuple(centroid)] = box # TODO ?
+            center_box_dict[tuple(centroid)] = box
 
         # if we haven't registered any new persons yet, register the new persons centers
         if len(self.to_dict) == 0:

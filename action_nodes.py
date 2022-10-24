@@ -1,4 +1,4 @@
-from flow_nodes import NodeStates, Node, Fallback
+from flow_nodes import NodeStates, Node
 import cv2 as cv
 from yolo_nn import Yolo
 
@@ -10,11 +10,14 @@ class RightHandAboveCheck(Node):
         self.detector = detector
 
     def evaluate(self):
-        img = self.get_data("img")
+        crop_img = self.get_data("cropped_img")
 
-        img = self.detector.init_landmarks(img)
+        crop_img = self.detector.init_landmarks(crop_img)
 
-        self.detector.get_landmarks(img)
+        cv.imshow("cropped_img", crop_img)
+        cv.waitKey(1)
+
+        self.detector.get_landmarks()
 
         if self.detector.detect_right_hand_above_nose():
             print("Right Hand: Success")
@@ -31,11 +34,14 @@ class LeftHandAboveCheck(Node):
         self.detector = detector
 
     def evaluate(self):
-        img = self.get_data("img")
+        crop_img = self.get_data("cropped_img")
 
-        img = self.detector.init_landmarks(img)
+        crop_img = self.detector.init_landmarks(crop_img)
 
-        self.detector.get_landmarks(img)
+        cv.imshow("cropped_img", crop_img)
+        cv.waitKey(1)
+
+        self.detector.get_landmarks()
 
         if self.detector.detect_left_hand_above_nose():
             print("Left Hand: Success")
@@ -54,6 +60,8 @@ class CameraCapture(Node):
         success, img = self.cap.read()
 
         if success:
+            cv.imshow('detector', img)
+            cv.waitKey(1)
             self.parent.set_data("img", img)
             return NodeStates.SUCCESS
         else:
@@ -68,22 +76,19 @@ class TrackPerson(Node):
     def evaluate(self):
         img = self.get_data("img")
 
-        if cv.waitKey(10) & 0xFF == ord('s'):
+        if cv.waitKey(1) & 0xFF == ord('s'):
             init_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
             self.yolo = Yolo(init_box)
             cv.destroyWindow("Select object for tracking")
 
         if self.yolo is not None:
             img = self.yolo.track(img)
-            if self.yolo.tracked_to.box is not None:
+            if self.yolo.tracked_to is not None:
                 self.parent.set_data("center", self.yolo.tracked_to.centroid)
-                tracked_box = self.yolo.tracked_to.box
-                cropped_img = self.yolo.crop_im(img, *tracked_box)
-                cv.imshow("cropped", cropped_img)  # TODO ?
-                cv.waitKey(10)
-                self.parent.set_data("cropped_img", cropped_img)
-            return NodeStates.SUCCESS
+                if self.yolo.tracked_to.box is not None:
+                    tracked_box = self.yolo.tracked_to.box
+                    cropped_img = self.yolo.crop_im(img, *tracked_box)
+                    self.parent.set_data("cropped_img", cropped_img)
+                return NodeStates.SUCCESS
         else:
-            cv.imshow('detector', img)
-            cv.waitKey(100)
             return NodeStates.FAILURE

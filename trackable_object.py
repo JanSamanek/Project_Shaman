@@ -6,7 +6,7 @@ class TrackableObject:
     def __init__(self, center_x, center_y, ID):
         self.kf = KalmanFilter((center_x, center_y))
         self.centroid = center_x, center_y
-        self.box = None  # TODO ?
+        self.box = None
         self.ID = ID
         self.disappeared_count = 0
         self.predicted_centroid = None   # TODO ?

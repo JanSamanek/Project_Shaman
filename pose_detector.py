@@ -34,7 +34,7 @@ class PoseDetector:
                 self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
         return img
 
-    def get_landmarks(self, img):
+    def get_landmarks(self):
 
         lm_list = []
 

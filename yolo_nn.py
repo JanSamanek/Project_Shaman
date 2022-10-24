@@ -92,7 +92,7 @@ def main():
 
         if yolo is not None:
             img = yolo.track(img)
-            if yolo.tracked_to is not None:
+            if yolo.tracked_to.box is not None:
                 to_box = yolo.tracked_to.box
                 cv.imshow('detector', img[to_box[1]:to_box[3], to_box[0]:to_box[2]])
                 cv.destroyAllWindows()
