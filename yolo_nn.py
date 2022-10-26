@@ -6,7 +6,7 @@ import torch
 
 class Yolo:
 
-    def __init__(self, box_to):
+    def __init__(self):
         self.model = torch.hub.load('ultralytics/yolov5',
                                     'custom',
                                     path=r"C:\Users\jands\Project_Shaman\yolov5\runs\train\exp3\weights\best.pt")
@@ -15,7 +15,9 @@ class Yolo:
         self.pd_table = None
         self.trackable_objects = None
         self.tracked_to = None
+        self.pt = None
 
+    def init_tracking(self, box_to):
         centre_to = Yolo._calculate_center(*box_to)
         self.pt = PersonTracker(centre_to)
 
@@ -43,15 +45,16 @@ class Yolo:
             for box in boxes:
                 Yolo._draw_boxes(img, *box)
 
-        self.trackable_objects = self.pt.update(boxes)
-        self.tracked_to = self.trackable_objects.get(0, None)
+        if self.pt is not None:
+            self.trackable_objects = self.pt.update(boxes)
+            self.tracked_to = self.trackable_objects.get(0, None)
 
-        for to in self.trackable_objects.values():
-            img = Yolo._draw_id(img, to.ID, to.centroid, (0, 255, 0))
-            if to.disappeared_count > 0:
-                img = Yolo._draw_id(img, to.ID, to.centroid, (255, 0, 0))
+            for to in self.trackable_objects.values():
+                img = Yolo._draw_id(img, to.ID, to.centroid, (0, 255, 0))
+                if to.disappeared_count > 0:
+                    img = Yolo._draw_id(img, to.ID, to.centroid, (255, 0, 0))
 
-        return img
+            return img
 
     @staticmethod
     def crop_im(img, start_x, start_y, end_x, end_y):

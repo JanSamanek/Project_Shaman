@@ -71,14 +71,14 @@ class CameraCapture(Node):
 class TrackPerson(Node):
     def __init__(self, *children_nodes):
         super().__init__(*children_nodes)
-        self.yolo = None
+        self.yolo = Yolo()
 
     def evaluate(self):
         img = self.get_data("img")
 
-        if cv.waitKey(1) & 0xFF == ord('s'):
+        if cv.waitKey(10) & 0xFF == ord('s'):
             init_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
-            self.yolo = Yolo(init_box)
+            self.yolo.init_tracking(init_box)
             cv.destroyWindow("Select object for tracking")
 
         if self.yolo is not None:
