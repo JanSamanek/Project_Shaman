@@ -10,15 +10,6 @@ class RightHandAboveCheck(Node):
         self.detector = detector
 
     def evaluate(self):
-        crop_img = self.get_data("cropped_img")
-
-        crop_img = self.detector.init_landmarks(crop_img)
-
-        cv.imshow("cropped_img", crop_img)
-        cv.waitKey(1)
-
-        self.detector.get_landmarks()
-
         if self.detector.detect_right_hand_above_nose():
             print("Right Hand: Success")
             return NodeStates.SUCCESS
@@ -34,15 +25,6 @@ class LeftHandAboveCheck(Node):
         self.detector = detector
 
     def evaluate(self):
-        crop_img = self.get_data("cropped_img")
-
-        crop_img = self.detector.init_landmarks(crop_img)
-
-        cv.imshow("cropped_img", crop_img)
-        cv.waitKey(1)
-
-        self.detector.get_landmarks()
-
         if self.detector.detect_left_hand_above_nose():
             print("Left Hand: Success")
             return NodeStates.SUCCESS
@@ -76,7 +58,7 @@ class TrackPerson(Node):
     def evaluate(self):
         img = self.get_data("img")
 
-        if cv.waitKey(10) & 0xFF == ord('s'):
+        if cv.waitKey(1) & 0xFF == ord('s'):
             init_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
             self.yolo.init_tracking(init_box)
             cv.destroyWindow("Select object for tracking")
@@ -90,5 +72,26 @@ class TrackPerson(Node):
                     cropped_img = self.yolo.crop_im(img, *tracked_box)
                     self.parent.set_data("cropped_img", cropped_img)
                 return NodeStates.SUCCESS
+            else:
+                return NodeStates.FAILURE
         else:
             return NodeStates.FAILURE
+
+
+class InitLm(Node):
+
+    def __init__(self, *children_nodes, detector):
+        super().__init__(*children_nodes)
+        self.detector = detector
+
+    def evaluate(self):
+        crop_img = self.get_data("cropped_img")
+
+        crop_img = self.detector.init_landmarks(crop_img)
+
+        cv.imshow("cropped_img", crop_img)
+        cv.waitKey(1)
+
+        self.detector.get_landmarks()
+
+        return NodeStates.SUCCESS

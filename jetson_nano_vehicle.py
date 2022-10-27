@@ -1,6 +1,6 @@
 from tree import BehaviourTree
 from flow_nodes import Fallback, Sequence
-from action_nodes import RightHandAboveCheck, LeftHandAboveCheck, CameraCapture, TrackPerson
+from action_nodes import RightHandAboveCheck, LeftHandAboveCheck, CameraCapture, TrackPerson, InitLm
 from pose_detector import PoseDetector
 
 
@@ -14,6 +14,7 @@ class JetsonNano(BehaviourTree):
         self._root = Sequence(
             CameraCapture(),
             TrackPerson(),
+            InitLm(detector=self.detector),
             Fallback(
                 RightHandAboveCheck(detector=self.detector),
                 LeftHandAboveCheck(detector=self.detector)
