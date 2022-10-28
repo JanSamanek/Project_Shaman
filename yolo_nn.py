@@ -54,7 +54,7 @@ class Yolo:
                 if to.disappeared_count > 0:
                     img = Yolo._draw_id(img, to.ID, to.centroid, (255, 0, 0))
 
-            return img
+        return img
 
     @staticmethod
     def crop_im(img, start_x, start_y, end_x, end_y):
@@ -92,21 +92,20 @@ def main():
 
         previous_time = display_fps(img, previous_time)
 
-        if yolo is not None:
-            img = yolo.track(img)
-            if yolo.tracked_to is not None:
-                if yolo.tracked_to.box is not None:
-                    to_box = yolo.tracked_to.box
-                    cv.imshow('detector', img[to_box[1]:to_box[3], to_box[0]:to_box[2]])
-                    cv.destroyAllWindows()
-        else:
-            cv.imshow('detector', img)
+        img = yolo.track(img)
+        cv.imshow('detector', img)
+
+        if yolo.tracked_to is not None:
+            if yolo.tracked_to.box is not None:
+                to_box = yolo.tracked_to.box
+                cv.imshow('cropped im', img[to_box[1]:to_box[3], to_box[0]:to_box[2]])
 
         if cv.waitKey(1) & 0xFF == ord('s'):
             cv.destroyAllWindows()
             tb_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
             yolo.init_tracking(tb_box)
-
+            cv.destroyWindow("Select object for tracking")
+            
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
