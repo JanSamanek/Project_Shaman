@@ -43,7 +43,7 @@ class Yolo:
 
         if draw_box:
             for box in boxes:
-                Yolo._draw_boxes(img, *box)
+                Yolo._draw_boxes(img, *box, color=(0, 255, 0))
 
         if self.pt is not None:
             self.trackable_objects = self.pt.update(boxes)
@@ -70,9 +70,8 @@ class Yolo:
         return image
 
     @staticmethod
-    def _draw_boxes(image, x_min, y_min, x_max, y_max):
-        GREEN = (0, 255, 0)
-        cv.rectangle(image, (x_min, y_min), (x_max, y_max), GREEN, 2)
+    def _draw_boxes(image, x_min, y_min, x_max, y_max, color):
+        cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
         return image
 
     @staticmethod
