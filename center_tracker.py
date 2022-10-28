@@ -44,7 +44,7 @@ class PersonTracker:
         for i, box in enumerate(boxes):
             centroid = _calculate_center(*box)
             new_centers[i] = centroid
-            center_box_dict[tuple(centroid)] = box
+            center_box_dict[tuple(centroid)] = box #################################################x ?
 
         # if we haven't registered any new persons yet, register the new persons centers
         if len(self.to_dict) == 0:
@@ -54,11 +54,9 @@ class PersonTracker:
         else:
             # grab the set of object IDs and corresponding centroids
             IDs = [to.ID for to in self.to_dict.values()]
-            # predicted_centroids = [to.predict() for to in self.to_dict.values()]
-            to_centroids = [to.centroid for to in self.to_dict.values()]
+            predicted_centroids = [to.predict() for to in self.to_dict.values()]
 
-            # D = dist.cdist(np.array(predicted_centroids), new_centers)
-            D = dist.cdist(np.array(to_centroids), new_centers)
+            D = dist.cdist(np.array(predicted_centroids), new_centers)
 
             rows = D.min(axis=1).argsort()
 
@@ -78,7 +76,9 @@ class PersonTracker:
 
                 ID = IDs[row]
                 to = self.to_dict[ID]
-                to.centroid = new_centers[col]
+                new_center = new_centers[col]
+                to.box = center_box_dict[tuple(new_center)]
+                to.centroid = to.apply_kf(new_center)
                 to.disappeared_count = 0
 
                 used_rows.add(row)
@@ -92,7 +92,6 @@ class PersonTracker:
                 for row in unused_rows:
                     ID = IDs[row]
                     to = self.to_dict[ID]
-                    # to.centroid = to.predict()    # TODO ?
                     to.disappeared_count += 1
 
                     if to.disappeared_count > self.max_disappeared:
@@ -101,15 +100,10 @@ class PersonTracker:
                 for col in unused_cols:
                     self._register(new_centers[col])
 
-            # assign box to trackable object
-            for to in self.to_dict.values():
-                if to.disappeared_count == 0:
-                    to.box = center_box_dict[tuple(to.centroid)]
-
         return self.to_dict
 
 
 def _calculate_center(start_x, start_y, end_x, end_y):
-    center_x = (start_x + end_x) / 2.0
-    center_y = (start_y + end_y) / 2.0
+    center_x = int((start_x + end_x) / 2.0)
+    center_y = int((start_y + end_y) / 2.0)
     return center_x, center_y

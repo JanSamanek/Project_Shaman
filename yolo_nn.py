@@ -84,7 +84,7 @@ class Yolo:
 def main():
     cap = cv.VideoCapture("test.mp4")
     previous_time = 0
-    yolo = None
+    yolo = Yolo()
 
     while cap.isOpened():
         # reading the image from video capture
@@ -94,17 +94,18 @@ def main():
 
         if yolo is not None:
             img = yolo.track(img)
-            if yolo.tracked_to.box is not None:
-                to_box = yolo.tracked_to.box
-                cv.imshow('detector', img[to_box[1]:to_box[3], to_box[0]:to_box[2]])
-                cv.destroyAllWindows()
+            if yolo.tracked_to is not None:
+                if yolo.tracked_to.box is not None:
+                    to_box = yolo.tracked_to.box
+                    cv.imshow('detector', img[to_box[1]:to_box[3], to_box[0]:to_box[2]])
+                    cv.destroyAllWindows()
         else:
             cv.imshow('detector', img)
 
         if cv.waitKey(1) & 0xFF == ord('s'):
             cv.destroyAllWindows()
             tb_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
-            yolo = Yolo(tb_box)
+            yolo.init_tracking(tb_box)
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
@@ -119,7 +120,7 @@ def _draw_boxes(image, x_min, y_min, x_max, y_max):
     return image
 
 
-def test():
+def yolo_test():
     model = torch.hub.load('ultralytics/yolov5', 'custom', path="yolov5/runs/train/exp3/weights/best.pt")
     # model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
     model.conf = 0.45

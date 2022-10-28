@@ -36,7 +36,7 @@ class LeftHandAboveCheck(Node):
 class CameraCapture(Node):
     def __init__(self, *children_nodes):
         super().__init__(*children_nodes)
-        self.cap = cv.VideoCapture(0)
+        self.cap = cv.VideoCapture('test.mp4')
 
     def evaluate(self):
         success, img = self.cap.read()
@@ -63,17 +63,14 @@ class TrackPerson(Node):
             self.yolo.init_tracking(init_box)
             cv.destroyWindow("Select object for tracking")
 
-        if self.yolo is not None:
-            img = self.yolo.track(img)
-            if self.yolo.tracked_to is not None:
-                self.parent.set_data("center", self.yolo.tracked_to.centroid)
-                if self.yolo.tracked_to.box is not None:
-                    tracked_box = self.yolo.tracked_to.box
-                    cropped_img = self.yolo.crop_im(img, *tracked_box)
-                    self.parent.set_data("cropped_img", cropped_img)
+        img = self.yolo.track(img)
+        if self.yolo.tracked_to is not None:
+            self.parent.set_data("center", self.yolo.tracked_to.centroid)
+            if self.yolo.tracked_to.box is not None:
+                tracked_box = self.yolo.tracked_to.box
+                cropped_img = self.yolo.crop_im(img, *tracked_box)
+                self.parent.set_data("cropped_img", cropped_img)
                 return NodeStates.SUCCESS
-            else:
-                return NodeStates.FAILURE
         else:
             return NodeStates.FAILURE
 
