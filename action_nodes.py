@@ -42,8 +42,6 @@ class CameraCapture(Node):
         success, img = self.cap.read()
 
         if success:
-            cv.imshow('detector', img)
-            cv.waitKey(1)
             self.parent.set_data("img", img)
             return NodeStates.SUCCESS
         else:
@@ -64,6 +62,9 @@ class TrackPerson(Node):
             cv.destroyWindow("Select object for tracking")
 
         img = self.yolo.track(img)
+        cv.imshow('detector', img)
+        cv.waitKey(1)
+    
         if self.yolo.tracked_to is not None:
             self.parent.set_data("center", self.yolo.tracked_to.centroid)
             if self.yolo.tracked_to.box is not None:
