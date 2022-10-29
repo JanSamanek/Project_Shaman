@@ -35,24 +35,26 @@ class Yolo:
 
         return boxes
 
-    def track(self, img, draw_box=True):
+    def track(self, img):
 
         self._predict(img)
 
         boxes = self._post_process()
 
-        if draw_box:
-            for box in boxes:
-                Yolo._draw_boxes(img, *box, color=(0, 255, 0))
+        for box in boxes:
+            Yolo._draw_boxes(img, *box, color=(0, 255, 0))
 
         if self.pt is not None:
             self.trackable_objects = self.pt.update(boxes)
             self.tracked_to = self.trackable_objects.get(0, None)
 
             for to in self.trackable_objects.values():
-                img = Yolo._draw_id(img, to.ID, to.centroid, (0, 255, 0))
-                if to.disappeared_count > 0:
-                    img = Yolo._draw_id(img, to.ID, to.centroid, (255, 0, 0))
+                if to.ID == 0:
+                    img = Yolo._draw_id(img, to.ID, to.centroid, (0, 0, 255))
+                elif to.disappeared_count > 0:
+                    img = Yolo._draw_id(img, to.ID, to.predicted_centroid, (255, 0, 0))
+                else:
+                    img = Yolo._draw_id(img, to.ID, to.centroid, (0, 255, 0))
 
         return img
 
