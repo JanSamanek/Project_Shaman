@@ -64,7 +64,7 @@ class TrackPerson(Node):
         img = self.yolo.track(img)
         cv.imshow('detector', img)
         cv.waitKey(1)
-    
+
         if self.yolo.tracked_to is not None:
             self.parent.set_data("center", self.yolo.tracked_to.centroid)
             if self.yolo.tracked_to.box is not None:
