@@ -2,7 +2,7 @@
 
 path: 'C:\Users\jands\fiftyone\coco-2017'  # dataset root dir
 train: 'C:\Users\jands\fiftyone\coco-2017\train\images'  # train images
-val: 'C:\Users\jands\fiftyone\coco-2017\train\images'  # val images
+val: 'C:\Users\jands\fiftyone\coco-2017\validation\images'  # val images
 
 nc: 1
 

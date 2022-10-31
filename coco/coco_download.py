@@ -7,11 +7,11 @@ label_field = "ground_truth"
 
 dataset = foz.load_zoo_dataset(
     "coco-2017",
-    split="train",
+    splits=('train', 'validation', 'test'),
     label_types=["detections"],
     shuffle=True,
     classes=["person"],
-    max_samples=2500,
+    max_samples=3500,
 )
 
 # filter labels present from coco dataset

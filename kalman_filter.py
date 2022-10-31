@@ -1,8 +1,4 @@
 import numpy as np
-import cv2
-from yolo_nn import Yolo
-import matplotlib
-import matplotlib.pyplot as plt
 
 
 class KalmanFilter:
@@ -67,6 +63,11 @@ class KalmanFilter:
 
 
 def main():
+    import cv2
+    from yolo_nn import Yolo
+    import matplotlib
+    import matplotlib.pyplot as plt
+
     # Create opencv video capture object
     VideoCap = cv2.VideoCapture("test.mp4")
     yolo = Yolo()
