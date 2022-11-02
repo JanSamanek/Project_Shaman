@@ -60,7 +60,18 @@ class Yolo:
 
     @staticmethod
     def crop_im(img, start_x, start_y, end_x, end_y):
-        return img[start_y:end_y, start_x:end_x]
+        # enlarge the crop by 20%
+        new_start_y = int(start_y * 0.85)
+        new_end_y = int(end_y * 1.1)
+        new_start_x = int(start_x * 0.98)
+        new_end_x = int(end_x * 1.02)
+
+        if new_end_y > img.shape[0]:
+            new_end_y = img.shape[0]
+        if new_end_x > img.shape[1]:
+            new_end_x = img.shape[1]
+
+        return img[new_start_y:new_end_y, new_start_x:new_end_x]
 
     @staticmethod
     def _draw_id(image, objectID, centroid, color):
@@ -100,7 +111,8 @@ def main():
         if yolo.tracked_to is not None:
             if yolo.tracked_to.box is not None:
                 to_box = yolo.tracked_to.box
-                cv.imshow('cropped im', img[to_box[1]:to_box[3], to_box[0]:to_box[2]])
+                crop_im = yolo.crop_im(img, to_box[0], to_box[1], to_box[2], to_box[3])
+                cv.imshow('cropped im', crop_im)
 
         if cv.waitKey(1) & 0xFF == ord('s'):
             cv.destroyAllWindows()
