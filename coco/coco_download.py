@@ -17,8 +17,31 @@ dataset = foz.load_zoo_dataset(
 # filter labels present from coco dataset
 dataset = dataset.filter_labels("ground_truth", F("label").is_in(["person"]))
 
-dataset.export(
+split_view = dataset.match_tags('train')
+
+split_view.export(
     dataset_type=fo.types.YOLOv5Dataset,
     labels_path=labels_path,
     label_field=label_field,
+    split='train'
+)
+
+labels_path = r"C:\Users\jands\fiftyone\coco-2017\test\labels"
+split_view = dataset.match_tags('test')
+
+split_view.export(
+    dataset_type=fo.types.YOLOv5Dataset,
+    labels_path=labels_path,
+    label_field=label_field,
+    split='test'
+)
+
+labels_path = r"C:\Users\jands\fiftyone\coco-2017\validation\labels"
+split_view = dataset.match_tags('validation')
+
+split_view.export(
+    dataset_type=fo.types.YOLOv5Dataset,
+    labels_path=labels_path,
+    label_field=label_field,
+    split='validation'
 )
