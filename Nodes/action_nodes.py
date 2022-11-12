@@ -36,7 +36,7 @@ class LeftHandAboveCheck(Node):
 class CameraCapture(Node):
     def __init__(self, *children_nodes):
         super().__init__(*children_nodes)
-        self.cap = cv.VideoCapture('test.mp4')
+        self.cap = cv.VideoCapture('../test.mp4')
 
     def evaluate(self):
         success, img = self.cap.read()
