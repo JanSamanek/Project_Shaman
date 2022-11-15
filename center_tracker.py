@@ -44,7 +44,7 @@ class PersonTracker:
         for i, box in enumerate(boxes):
             centroid = _calculate_center(*box)
             new_centers[i] = centroid
-            center_box_dict[tuple(centroid)] = box #################################################x ?
+            center_box_dict[tuple(centroid)] = box
 
         # if we haven't registered any new persons yet, register the new persons centers
         if len(self.to_dict) == 0:
