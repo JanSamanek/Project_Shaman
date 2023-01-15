@@ -24,6 +24,7 @@ class Yolo:
     def _predict(self, img):
         self.results = self.model(img)
         self.pd_table = self.results.pandas().xyxy[0]
+        # self.pd_table = self.pd_table.loc[self.pd_table['name'] == 'person']
 
     def _post_process(self):
         # process only persons
