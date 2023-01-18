@@ -7,9 +7,7 @@ import torch
 class Yolo:
 
     def __init__(self):
-        self.model = torch.hub.load('ultralytics/yolov5',
-                                    'custom',
-                                    path=r"C:\Users\jands\Project_Shaman\yolov5\runs\train\exp3\weights\best.pt")
+        self.model = torch.hub.load('ultralytics/yolov5','yolov5s')
         self.model.conf = 0.5
         self.results = None
         self.pd_table = None
@@ -24,7 +22,7 @@ class Yolo:
     def _predict(self, img):
         self.results = self.model(img)
         self.pd_table = self.results.pandas().xyxy[0]
-        # self.pd_table = self.pd_table.loc[self.pd_table['name'] == 'person']
+        self.pd_table = self.pd_table.loc[self.pd_table['name'] == 'person']
 
     def _post_process(self):
         # process only persons
