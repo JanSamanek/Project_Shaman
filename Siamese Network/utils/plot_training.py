@@ -11,5 +11,5 @@ def plot_training(H, plotPath):
 	plt.title("Training Loss and Accuracy")
 	plt.xlabel("Epoch #")
 	plt.ylabel("Loss/Accuracy")
-	plt.legend(loc="lower left")
+	plt.legend(loc="upper right")
 	plt.savefig(plotPath)

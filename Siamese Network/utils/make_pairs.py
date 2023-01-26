@@ -15,15 +15,17 @@ def make_pairs(dataset):
         label = labels[idx_1]
         img_1 = images[idx_1]
         # randomly pick an image that belongs to the *same* class
-        idx_2 = np.random.choice(np.where(np.array(labels) == label)[0])
-        img_2 = images[idx_2]
-        pairs_list.append((img_1, img_2))
-        labels_list.append([1])
+        for i in range(2):
+            idx_2 = np.random.choice(np.where(np.array(labels) == label)[0])
+            img_2 = images[idx_2]
+            pairs_list.append((img_1, img_2))
+            labels_list.append([1])
 
         # randomly pick an image that does *not* belong to the same class
-        idx_2 = np.random.choice(np.where(np.array(labels) != label)[0])
-        img_2 = images[idx_2]
-        pairs_list.append((img_1, img_2))
-        labels_list.append([0])
+        for i in range(2):
+            idx_2 = np.random.choice(np.where(np.array(labels) != label)[0])
+            img_2 = images[idx_2]
+            pairs_list.append((img_1, img_2))
+            labels_list.append([0])
 
     return np.array(pairs_list), np.array(labels_list)

@@ -97,6 +97,7 @@ pathlib2==2.3.7.post1
 patool==1.12
 pickleshare==0.7.5
 Pillow==9.2.0
+pip-autoremove==0.10.0
 plotly==5.10.0
 pluggy==1.0.0
 pprintpp==0.4.0
