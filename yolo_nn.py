@@ -27,17 +27,14 @@ class Yolo:
     def _post_process(self):
         # process only persons
         boxes = []
-
         for index, row in self.pd_table.iterrows():
             x_min,  y_min, x_max, y_max = int(row['xmin']),  int(row['ymin']), int(row['xmax']), int(row['ymax'])
             boxes.append((x_min, y_min, x_max, y_max))
-
         return boxes
 
     def track(self, img):
 
         self._predict(img)
-
         boxes = self._post_process()
 
         for box in boxes:
