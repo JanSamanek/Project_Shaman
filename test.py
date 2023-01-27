@@ -2,19 +2,10 @@ from tensorflow.keras.models import load_model
 import tensorflow.keras.backend as K
 import tensorflow as tf 
 
-def euclidean_distance(vectors):
-    features_1, features_2 = tf.split(vectors, 2, axis=0)
-    # compute the sum of squared distances between the vectors
-    sumSquared = K.sum(K.square(features_1 - features_2), axis=1, keepdims=True)
-	# return the euclidean distance between the vectors
-    return K.sqrt(K.maximum(sumSquared, K.epsilon()))
-
-model = load_model('Siamese Network/model/siamese_network2.h5')
+model = load_model('Siamese Network/model/siamese_network.h5')
 
 train_data_dir = r'C:\Users\jands\Market-1501-v15.09.15\bounding_box_train'
 file_paths_train = tf.data.Dataset.list_files(train_data_dir + '/*.jpg')
-
-IMG_SHAPE = 96
 
 def extract_label(file_path):
     label = tf.strings.split(file_path, '_')
@@ -26,8 +17,6 @@ def read_and_decode(file_path):
     image = tf.io.read_file(file_path)
     image = tf.image.decode_jpeg(image, channels=3)
     image = tf.image.convert_image_dtype(image, tf.float32)
-    image = tf.image.resize(image, (IMG_SHAPE, IMG_SHAPE), method='bicubic')
-    image = tf.clip_by_value(image, 0, 1)
     return image, label
 
 print("[INFO] loading data...")
