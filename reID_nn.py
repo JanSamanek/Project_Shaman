@@ -3,22 +3,24 @@ import tensorflow.keras.backend as K
 import tensorflow as tf 
 import cv2 as cv
 import numpy as np
+import time
 
 class ReID():
 
     IMG_SIZE = (128, 64)
-    CONF = 0.6
 
     def __init__(self, ref_image):
         self.ref_img = ReID._process_img(ref_image)
         self.reid_model = load_model('Siamese Network/model/siamese_network.h5')
+        self.conf = 0.6
+        self.reid_model.predict([self.ref_img, self.ref_img])  # to reduce predicition time afterwards
         
     def identificate(self, imgs):
         for idx, img in enumerate(imgs):
             img = ReID._process_img(img)
             prediction = self.reid_model.predict([self.ref_img, img])
-            if prediction[0][0] > ReID.CONF:
-                return idx ## could be done better, what if another picture has predict bigger than confidence
+            if prediction[0][0] > self.conf:
+                return idx
         else:
             return None
 
@@ -42,8 +44,14 @@ if __name__ == '__main__':
     img5 = cv.imread(r"C:\Users\jands\Market-1501-v15.09.15\bounding_box_train\0005_c1s1_001351_00.jpg")
     imgs = [img1, img2, img3, img4, img5]
 
+    start = time.perf_counter()
     idx = reid.identificate(imgs)
+    end = time.perf_counter()
 
-    cv.imshow("ref", img)
-    cv.imshow("img 2", imgs[idx])
-    cv.waitKey(5000)
+    total_time = end-start
+
+    print("Elapsed time: ", total_time)
+    
+    # cv.imshow("ref", img)
+    # cv.imshow("img 2", imgs[idx])
+    # cv.waitKey(5000)
