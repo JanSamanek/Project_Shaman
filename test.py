@@ -57,4 +57,8 @@ def make_pairs(dataset):
 
 train_pair_x, train_pair_y = make_pairs(dataset_train)
 
-print(model.predict([train_pair_x[:,0], train_pair_x[:,1]]))
+img1 = np.expand_dims(train_pair_x[1,0], axis=0)
+img2 = np.expand_dims(train_pair_x[1,1], axis=0)
+
+
+print(model.predict([img1, img2]))
