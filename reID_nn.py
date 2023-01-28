@@ -11,7 +11,7 @@ class ReID():
 
     def __init__(self, ref_image):
         self.ref_img = ReID._process_img(ref_image)
-        self.reid_model = load_model('Siamese Network/model/siamese_network (1).h5')
+        self.reid_model = load_model('Siamese Network/model/siamese_network.h5')
         self.conf = 0.7
         self.reid_model.predict([self.ref_img, self.ref_img])  # to reduce predicition time afterwards
         
@@ -19,6 +19,9 @@ class ReID():
         predictions = []
         cv.imshow("ref", np.squeeze(self.ref_img, axis=0))
         for idx, img in enumerate(imgs):
+
+            print("img shape: ", img.shape)
+
             img = ReID._process_img(img)
             prediction = self.reid_model.predict([self.ref_img, img])
             predictions.append(prediction[0][0])
