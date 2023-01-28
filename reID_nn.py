@@ -27,7 +27,7 @@ class ReID():
     @staticmethod
     def _process_img(img):
         img = tf.image.convert_image_dtype(img, tf.float32)
-        tf.image.resize(img, ReID.IMG_SIZE) 
+        img = tf.image.resize(img, ReID.IMG_SIZE) 
         img = np.expand_dims(img, axis=0)
         return img
 

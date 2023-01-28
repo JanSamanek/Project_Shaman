@@ -58,7 +58,7 @@ class TrackPerson(Node):
 
         if cv.waitKey(1) & 0xFF == ord('s'):
             init_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
-            self.yolo.init_tracking(init_box)
+            self.yolo.init_tracking(img, init_box)
             cv.destroyWindow("Select object for tracking")
 
         img = self.yolo.track(img)

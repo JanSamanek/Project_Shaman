@@ -1,6 +1,8 @@
 import cv2 as cv
 from center_tracker import PersonTracker
 from pose_detector import display_fps
+from reID_nn import ReID
+import tensorflow.keras.backend as K
 import torch
 
 
@@ -14,10 +16,16 @@ class Yolo:
         self.trackable_objects = None
         self.tracked_to = None
         self.pt = None
+        self.reid = None
 
-    def init_tracking(self, box_to):
+    def init_tracking(self, img, box_to):
         centre_to = Yolo._calculate_center(*box_to)
         self.pt = PersonTracker(centre_to)
+
+        ref_img = img[box_to[1]:box_to[1] + box_to[3], box_to[0]: box_to[0] + box_to[2]]
+        cv.imshow("ref", ref_img)
+        cv.waitKey(1000)
+        self.reid = ReID(ref_img)
 
     def _predict(self, img):
         self.results = self.model(img)
@@ -99,22 +107,23 @@ def main():
         # reading the image from video capture
         _, img = cap.read()
 
-        previous_time = display_fps(img, previous_time)
+        orig_img = img.copy()
 
         img = yolo.track(img)
+        previous_time = display_fps(img, previous_time)
         cv.imshow('detector', img)
+
+        if cv.waitKey(1) & 0xFF == ord('s'):
+            cv.destroyAllWindows()
+            to_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
+            yolo.init_tracking(orig_img, to_box)
+            cv.destroyWindow("Select object for tracking")
 
         if yolo.tracked_to is not None:
             if yolo.tracked_to.box is not None:
                 to_box = yolo.tracked_to.box
-                crop_im = yolo.crop_im(img, to_box[0], to_box[1], to_box[2], to_box[3])
+                crop_im = yolo.crop_im(orig_img, to_box[0], to_box[1], to_box[2], to_box[3])
                 cv.imshow('cropped im', crop_im)
-
-        if cv.waitKey(1) & 0xFF == ord('s'):
-            cv.destroyAllWindows()
-            tb_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
-            yolo.init_tracking(tb_box)
-            cv.destroyWindow("Select object for tracking")
             
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
@@ -130,8 +139,8 @@ def _draw_boxes(image, x_min, y_min, x_max, y_max):
 
 
 def yolo_test():
-    model = torch.hub.load('ultralytics/yolov5', 'custom', path="yolov5/runs/train/exp3/weights/best.pt")
-    # model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+    # model = torch.hub.load('ultralytics/yolov5', 'custom', path="yolov5/runs/train/exp3/weights/best.pt")
+    model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
     model.conf = 0.45
 
     cap = cv.VideoCapture("test.mp4")
