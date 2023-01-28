@@ -16,10 +16,13 @@ class ReID():
         self.reid_model.predict([self.ref_img, self.ref_img])  # to reduce predicition time afterwards
         
     def identificate(self, imgs):
+        predictions = []
         for idx, img in enumerate(imgs):
             img = ReID._process_img(img)
             prediction = self.reid_model.predict([self.ref_img, img])
-            if prediction[0][0] > self.conf:
+            predictions.append(prediction[0][0])
+            idx = np.argmax(predictions)
+            if predictions[idx] > self.conf:
                 return idx
         else:
             return None
@@ -52,6 +55,6 @@ if __name__ == '__main__':
 
     print("Elapsed time: ", total_time)
     
-    # cv.imshow("ref", img)
-    # cv.imshow("img 2", imgs[idx])
-    # cv.waitKey(5000)
+    cv.imshow("ref", img)
+    cv.imshow("img 2", imgs[idx])
+    cv.waitKey(5000)

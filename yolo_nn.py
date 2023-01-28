@@ -4,7 +4,7 @@ from pose_detector import display_fps
 from reID_nn import ReID
 import tensorflow.keras.backend as K
 import torch
-
+# one big problem is that i store boxes in different formats ... in the future i should fix this
 
 class Yolo:
 
@@ -21,10 +21,7 @@ class Yolo:
     def init_tracking(self, img, box_to):
         centre_to = Yolo._calculate_center(*box_to)
         self.pt = PersonTracker(centre_to)
-
         ref_img = img[box_to[1]:box_to[1] + box_to[3], box_to[0]: box_to[0] + box_to[2]]
-        cv.imshow("ref", ref_img)
-        cv.waitKey(1000)
         self.reid = ReID(ref_img)
 
     def _predict(self, img):
@@ -33,7 +30,6 @@ class Yolo:
         self.pd_table = self.pd_table.loc[self.pd_table['name'] == 'person']
 
     def _post_process(self):
-        # process only persons
         boxes = []
         for index, row in self.pd_table.iterrows():
             x_min,  y_min, x_max, y_max = int(row['xmin']),  int(row['ymin']), int(row['xmax']), int(row['ymax'])
@@ -45,12 +41,22 @@ class Yolo:
         self._predict(img)
         boxes = self._post_process()
 
-        for box in boxes:
-            Yolo._draw_boxes(img, *box, color=(61, 254, 96))
+        if self.reid is not None:
+            imgs = []
+            for box in boxes:
+                imgs.append(img[box[1]:box[3], box[0]: box[2]])
+            idx = self.reid.identificate(imgs)
+
+            if idx is not None:
+                pass
+    
+            cv.imshow("imgs idx", imgs[idx])
+            cv.waitKey(500)
 
         if self.pt is not None:
             self.trackable_objects = self.pt.update(boxes)
             self.tracked_to = self.trackable_objects.get(0, None)
+
 
             for to in self.trackable_objects.values():
                 if to.ID == 0:
@@ -60,11 +66,14 @@ class Yolo:
                 else:
                     img = Yolo._draw_id(img, to.ID, to.centroid, (61, 254, 96))
 
+        for box in boxes:
+            Yolo._draw_boxes(img, *box, color=(61, 254, 96))
+
         return img
 
     @staticmethod
     def crop_im(img, start_x, start_y, end_x, end_y):
-        # enlarge the crop by 20%
+        # enlarge the crop
         new_start_y = int(start_y * 0.85)
         new_end_y = int(end_y * 1.1)
         new_start_x = int(start_x * 0.98)
