@@ -37,6 +37,7 @@ class ReID():
         else:
             return None
 
+    # what to do if img is smaller than input size to no loose information
     @staticmethod
     def _process_img(img):
         img = tf.image.convert_image_dtype(img, tf.float32)
