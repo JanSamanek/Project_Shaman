@@ -4,9 +4,9 @@ import json
 import cv2
 
 class WSNode():
-    def __init__(self):
+    def __init__(self, connection="ws://localhost:8080/"):
         websocket.enableTrace(True)
-        self.ws = websocket.WebSocketApp("ws://localhost:8080/", on_message=WSNode.on_message, on_error=WSNode.on_error, on_close=WSNode.on_close)
+        self.ws = websocket.WebSocketApp(connection, on_message=WSNode.on_message, on_error=WSNode.on_error, on_close=WSNode.on_close)
         self.ws.on_open = WSNode.on_open
         self.ws.run_forever()
 
@@ -31,7 +31,7 @@ class WSNode():
 
 class Server(WSNode):
     def on_message(self, ws, message):
-       json_message = json.loads(message)
+        json_message = json.loads(message)
 
 class Client(WSNode):
     def send(self, data):
@@ -42,5 +42,5 @@ class Client(WSNode):
         self.ws.send(json_message)
 
     def on_message(self, ws, message):
-       json_message = json.loads(message)
+        json_message = json.loads(message)
 

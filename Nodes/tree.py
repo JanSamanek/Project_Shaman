@@ -1,5 +1,5 @@
 class BehaviourTree:
-
+    
     def __init__(self):
         self._root = None
         self.setup_tree()
