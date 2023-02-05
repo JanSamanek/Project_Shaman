@@ -20,10 +20,10 @@ class Server():
         self.client_socket, address = self.server_socket.accept()
         print(f"[INF] Client connected from ip adress: {address[0]}...")
 
-    def recieve_images(self):
+    def communicate(self):
         while True:
-            size = self._recieve_mess_size()
-            frame = self._recieve_img(size)
+            frame = self._recieve_img()
+            
             json_data = {"string": "hello"}
             self._send_json(json_data)
             
@@ -37,10 +37,8 @@ class Server():
         self.client_socket.sendall(len(data_bytes).to_bytes(4, byteorder='big'))
         self.client_socket.sendall(data_bytes)
         
-    def _recieve_mess_size(self):
-        return int.from_bytes(self.client_socket.recv(4), byteorder='big')
-        
-    def _recieve_img(self, size):
+    def _recieve_img(self):
+        size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
         data = b''
         while len(data) < size:
             data += self.client_socket.recv(1024)
@@ -48,6 +46,7 @@ class Server():
         # Decode image
         image = np.frombuffer(data, np.uint8)          
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)  
+        
         return image
     
     def close(self):
@@ -59,4 +58,4 @@ class Server():
 if __name__ == '__main__':
     server = Server()
     server.accept_new_client()
-    server.recieve_images()
+    server.communicate()

@@ -12,7 +12,6 @@ class Yolo:
         self.model = torch.hub.load('ultralytics/yolov5','yolov5s')
         self.model.conf = 0.5
         self.results = None
-        self.pd_table = None
         self.trackable_objects = None
         self.tracked_to = None
         self.pt = None
@@ -36,22 +35,20 @@ class Yolo:
             boxes.append((x_min, y_min, x_max, y_max))
         return boxes
 
-    def track(self, img):
+    def track(self, img, reid_on=True):
 
         self._predict(img)
         boxes = self._post_process()
-
-        if self.reid is not None:
+        
+        if self.reid is not None and reid_on:
             imgs = []
             for box in boxes:
                 imgs.append(img[box[1]:box[3], box[0]: box[2]])
             idx = self.reid.identificate(imgs)
 
             if idx is not None:
-                pass
-
-            cv.imshow("imgs idx", imgs[idx])
-            cv.waitKey(500)
+                cv.imshow("imgs idx", imgs[idx])
+                cv.waitKey(500)
 
         if self.pt is not None:
             self.trackable_objects = self.pt.update(boxes)
@@ -148,7 +145,6 @@ def _draw_boxes(image, x_min, y_min, x_max, y_max):
 
 
 def yolo_test():
-    # model = torch.hub.load('ultralytics/yolov5', 'custom', path="yolov5/runs/train/exp3/weights/best.pt")
     model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
     model.conf = 0.45
 

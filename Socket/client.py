@@ -13,7 +13,7 @@ class Client:
         self.client_socket.connect((host, port))
         print(f"[INF] Connected to ip adress: {host}, port: {port}...")
 
-    def send_images(self):
+    def communicate(self):
         # Create a VideoCapture object
         cap = cv2.VideoCapture(0)
 
@@ -22,20 +22,16 @@ class Client:
             ret, frame = cap.read()
             self._send_img(frame)
             
-            size = self._recieve_mess_size()
-            json_data = self._recieve_json(size)
-            print(json_data["string"])
+            json_data = self._recieve_json()
             
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
         data = image.tobytes()                                              # Convert the image to a byte array
         self.client_socket.sendall(len(data).to_bytes(4, byteorder='big'))  # Send the image size
         self.client_socket.sendall(data)                                    # Send the image data
-            
-    def _recieve_mess_size(self):
-        return int.from_bytes(self.client_socket.recv(4), byteorder='big')
     
-    def _recieve_json(self, size):
+    def _recieve_json(self):
+        size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
         json_data = b''
         while len(json_data) < size:
             json_data += self.client_socket.recv(1024)
@@ -49,5 +45,5 @@ class Client:
 if __name__ == '__main__':
     client = Client()
     client.connect_to_server()
-    client.send_images()
+    client.communicate()
     
