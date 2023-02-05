@@ -1,6 +1,7 @@
 import socket
 import cv2
 import numpy as np
+import json
 
 class Server():
     def __init__(self):
@@ -21,27 +22,39 @@ class Server():
 
     def recieve_images(self):
         while True:
+            size = self._recieve_mess_size()
+            frame = self._recieve_img(size)
+            json_data = {"string": "hello"}
+            self._send_json(json_data)
             
-            # Receive the image size
-            size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
-            
-            # Receive the image data
-            data = b''
-            while len(data) < size:
-                data += self.client_socket.recv(size)
-
-            image = np.frombuffer(data, np.uint8)           # Convert the data to a numpy array
-            frame = cv2.imdecode(image, cv2.IMREAD_COLOR)   # Decode the image
-
             cv2.imshow("hello", frame)
+            cv2.waitKey(1)
             
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                self.close()
+    def _send_json(self, json_data):
+        json_str = json.dumps(json_data)
+        data_bytes = json_str.encode()
+        
+        self.client_socket.sendall(len(data_bytes).to_bytes(4, byteorder='big'))
+        self.client_socket.sendall(data_bytes)
+        
+    def _recieve_mess_size(self):
+        return int.from_bytes(self.client_socket.recv(4), byteorder='big')
+        
+    def _recieve_img(self, size):
+        data = b''
+        while len(data) < size:
+            data += self.client_socket.recv(1024)
 
+        # Decode image
+        image = np.frombuffer(data, np.uint8)          
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)  
+        return image
     
-    def close(self):  
+    def close(self):
+        print("[INF] Shuting server down...")  
         self.client_socket.close()
         self.server_socket.close()
+        print("[INF] Server shut down...")  
 
 if __name__ == '__main__':
     server = Server()

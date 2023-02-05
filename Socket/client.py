@@ -1,6 +1,7 @@
 import socket
 import cv2
 import numpy as np
+import json
 
 class Client:
     def __init__(self):   
@@ -19,16 +20,27 @@ class Client:
         while True:
             # Read a frame from the video stream
             ret, frame = cap.read()
-
-            result, image = cv2.imencode('.jpg', frame)     # Convert the frame to a JPEG image
-            data = image.tobytes()                          # Convert the image to a byte array
-
-            # Send the image size
-            self.client_socket.sendall(len(data).to_bytes(4, byteorder='big'))
-
-            # Send the image data
-            self.client_socket.sendall(data)
-
+            self._send_img(frame)
+            
+            size = self._recieve_mess_size()
+            json_data = self._recieve_json(size)
+            print(json_data["string"])
+            
+    def _send_img(self, img):
+        result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
+        data = image.tobytes()                                              # Convert the image to a byte array
+        self.client_socket.sendall(len(data).to_bytes(4, byteorder='big'))  # Send the image size
+        self.client_socket.sendall(data)                                    # Send the image data
+            
+    def _recieve_mess_size(self):
+        return int.from_bytes(self.client_socket.recv(4), byteorder='big')
+    
+    def _recieve_json(self, size):
+        json_data = b''
+        while len(json_data) < size:
+            json_data += self.client_socket.recv(1024)
+        return json.loads(json_data)
+    
     def disconnect(self):
         print("[INF] Client dissconnecting...")
         self.client_socket.close()
