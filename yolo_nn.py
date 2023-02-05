@@ -50,8 +50,8 @@ class Yolo:
             if idx is not None:
                 pass
 
-            # cv.imshow("imgs idx", imgs[idx])
-            # cv.waitKey(500)
+            cv.imshow("imgs idx", imgs[idx])
+            cv.waitKey(500)
 
         if self.pt is not None:
             self.trackable_objects = self.pt.update(boxes)

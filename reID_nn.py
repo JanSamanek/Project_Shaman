@@ -11,7 +11,7 @@ class ReID():
 
     def __init__(self, ref_image):
         self.ref_img = ReID._process_img(ref_image)
-        self.reid_model = load_model('Siamese Network/model/siamese_network.h5')
+        self.reid_model = load_model('Siamese Network/model/nn_backbone_resnet.h5')
         self.conf = 0.7
         self.reid_model.predict([self.ref_img, self.ref_img])  # to reduce predicition time afterwards
         
@@ -27,9 +27,9 @@ class ReID():
             predictions.append(prediction[0][0])
 
             # testing
-            print("idx: ", idx, ", prediction: ", prediction[0][0])
-            cv.imshow(str(idx), np.squeeze(img, axis=0))
-            cv.waitKey(1000)
+            #print("idx: ", idx, ", prediction: ", prediction[0][0])
+            #cv.imshow(str(idx), np.squeeze(img, axis=0))
+            #cv.waitKey(1000)
 
         idx = np.argmax(predictions)
         if predictions[idx] > self.conf:
