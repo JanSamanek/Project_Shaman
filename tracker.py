@@ -79,8 +79,7 @@ def display_fps(img, previous_time):
     current_time = time.time()
     fps = 1/(current_time - previous_time)
     previous_time = current_time
-    cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2,
-                (0, 0, 255), 3)
+    cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
     return previous_time
 
 def main():
