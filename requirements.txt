@@ -13,7 +13,7 @@ cachetools==5.2.0
 certifi==2022.9.24
 charset-normalizer==2.1.1
 clearml==1.7.1
-click==8.1.3
+click==8.0.4
 colorama==0.4.5
 comm==0.1.2
 contourpy==1.0.5
@@ -32,11 +32,15 @@ executing==1.1.1
 fiftyone==0.17.2
 fiftyone-brain==0.9.1
 fiftyone-db==0.3.0
+filelock==3.9.0
+fire==0.5.0
 flatbuffers==23.1.21
 fonttools==4.37.2
 furl==2.1.3
 future==0.18.2
 gast==0.4.0
+gitdb==4.0.10
+GitPython==3.1.30
 glob2==0.7
 google-auth==2.12.0
 google-auth-oauthlib==0.4.6
@@ -51,6 +55,7 @@ h5py==3.1.0
 hpack==4.0.0
 httpcore==0.15.0
 httpx==0.23.0
+huggingface-hub==0.12.0
 hypercorn==0.14.3
 hyperframe==6.0.1
 idna==3.4
@@ -109,6 +114,7 @@ pure-eval==0.2.2
 py==1.11.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pybboxes==0.1.6
 Pygments==2.13.0
 PyJWT==2.4.0
 pymongo==3.12.3
@@ -136,13 +142,16 @@ rfc3986==1.5.0
 rrplugins==2.2.2
 rsa==4.9
 s3transfer==0.6.0
+sahi==0.11.11
 sbml2matlab==1.2.3
 scikit-image==0.19.3
 scikit-learn==1.1.2
 scipy==1.9.1
 seaborn==0.12.0
 sentinel==0.3.0
+shapely==2.0.1
 six==1.15.0
+smmap==5.0.0
 sniffio==1.3.0
 sortedcontainers==2.4.0
 sse-starlette==0.10.3
@@ -160,6 +169,7 @@ tensorflow-estimator==2.11.0
 tensorflow-intel==2.11.0
 tensorflow-io-gcs-filesystem==0.30.0
 termcolor==1.1.0
+terminaltables==3.1.10
 thop==0.1.1.post2209072238
 threadpoolctl==3.1.0
 tifffile==2022.10.10
@@ -178,7 +188,6 @@ universal-analytics-python3==1.1.1
 urllib3==1.26.12
 voxel51-eta==0.8.1
 wcwidth==0.2.5
-websockets==10.4
 Werkzeug==2.2.2
 wrapt==1.12.1
 wsproto==1.2.0

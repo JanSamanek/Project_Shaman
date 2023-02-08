@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import json
 from tracker import create_tracker, display_fps
+from Pose.pose_detector import PoseDetector
 import tensorflow.keras.backend as K
 
 class Server():
