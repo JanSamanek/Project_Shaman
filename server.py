@@ -24,7 +24,10 @@ class Server():
 
     def communicate(self):
         tracker = None
+        pose_detector = None
+        
         center = None
+        
         previous_time = 0
         
         while True:

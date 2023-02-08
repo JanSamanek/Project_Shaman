@@ -12,28 +12,23 @@ class PoseDetector:
         self.pose = self.mp_pose.Pose(**kwargs)
         self.pose_landmarks = []
 
-    def init_landmarks(self, img, draw=True):
+    def get_landmarks(self, img, draw=True):
+        lm_list = []
 
-        # to enhance performance
-        img.flags.writeable = False
-        # detecting pose and drawing landmarks, connections
-        # cv2 reads the image in BGR but mp needs RGB as input
-        img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img.flags.writeable = False     # to enhance performance
+        img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)       # cv2 reads the image in BGR but mp needs RGB as input
         self.results = self.pose.process(img_RGB)
         img.flags.writeable = True
 
         if self.results.pose_landmarks:
             if draw:
                 self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
-        return img
-
-    def get_landmarks(self):
-        lm_list = []
+                
         if self.results.pose_landmarks:
             for ID, lm in enumerate(self.results.pose_landmarks.landmark):
                 lm_list.append([ID, lm.x, lm.y])
             self.pose_landmarks = lm_list
-        return self.pose_landmarks
+        return img
 
     def detect_right_hand_above_nose(self):
         RIGHT_HAND_NUM = 16
@@ -103,10 +98,9 @@ def main():
 
     while cap.isOpened():
         # reading the image from video capture
-        _, img = cap.read()
-        img = detector.init_landmarks(img)
+        _, img = cap.read() 
 
-        pose_list = detector.get_landmarks()
+        img = detector.get_landmarks(img)
 
         cv2.imshow("Vision", img)
 
