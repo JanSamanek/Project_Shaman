@@ -6,7 +6,7 @@ import tensorflow.keras.backend as K
 
 class Tracker():
     def __init__(self, center_to, ref_image):
-        print("[INF] Creating all-in-one tracker ...")
+        print("[INF] Creating all-in-one tracker...")
         self.yolo = Yolo()
         self.pt = PersonTracker(center_to)
         self.reid = ReID(ref_image)
@@ -43,7 +43,6 @@ class Tracker():
         return img[new_start_y:new_end_y, new_start_x:new_end_x]
     
     def track(self, img, reid_on=True, draw_boxes=True, draw_id=True):
-
         boxes = self.yolo.predict(img)
         
         if reid_on:
@@ -80,6 +79,16 @@ def calculate_center(start_x, start_y, width, height):
     center_y = int((start_y + (start_y + height)) / 2.0)
     return center_x, center_y
 
+
+def create_tracker(img):
+    cv.destroyAllWindows()
+    to_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
+    center = calculate_center(*to_box)
+    ref_img = img[to_box[1]:to_box[1] + to_box[3], to_box[0]: to_box[0] + to_box[2]]
+    tracker = Tracker(center, ref_img)
+    cv.destroyWindow("Select object for tracking")
+    return tracker
+        
 def main():
     cap = cv.VideoCapture("test.mp4")
     previous_time = 0
@@ -94,14 +103,8 @@ def main():
         previous_time = display_fps(img, previous_time)
         cv.imshow('detector', img)
 
-            
         if cv.waitKey(1) & 0xFF == ord('s'):
-            cv.destroyAllWindows()
-            to_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
-            center = calculate_center(*to_box)
-            ref_img = img[to_box[1]:to_box[1] + to_box[3], to_box[0]: to_box[0] + to_box[2]]
-            tracker = Tracker(center, ref_img)
-            cv.destroyWindow("Select object for tracking")
+            tracker = create_tracker(img)
 
         # if yolo.tracked_to is not None:
         #     if yolo.tracked_to.box is not None:
