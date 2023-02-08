@@ -28,14 +28,11 @@ class PoseDetector:
         return img
 
     def get_landmarks(self):
-
         lm_list = []
-
         if self.results.pose_landmarks:
             for ID, lm in enumerate(self.results.pose_landmarks.landmark):
                 lm_list.append([ID, lm.x, lm.y])
             self.pose_landmarks = lm_list
-
         return self.pose_landmarks
 
     def detect_right_hand_above_nose(self):
@@ -48,7 +45,6 @@ class PoseDetector:
                 return True
             else:
                 return False
-
         except IndexError:
             print("missing hand or nose in video")
 
@@ -79,15 +75,26 @@ class PoseDetector:
             # calculate angle
             angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
                                  - math.atan2(position_pix_y1 - position_pix_y2, position_pix_x1 - position_pix_x2))
-
             if angle < 0:
                 angle += 360
-
-            # print(angle)
-
             return angle
+  
+    @staticmethod
+    def crop_im(img, start_x, start_y, end_x, end_y):
+        # enlarge the crop
+        new_start_y = int(start_y * 0.85)
+        new_end_y = int(end_y * 1.1)
+        new_start_x = int(start_x * 0.98)
+        new_end_x = int(end_x * 1.02)
 
+        if new_end_y > img.shape[0]:
+            new_end_y = img.shape[0]
+        if new_end_x > img.shape[1]:
+            new_end_x = img.shape[1]
 
+        return img[new_start_y:new_end_y, new_start_x:new_end_x]
+    
+    
 def main():
     previous_time = 0
 

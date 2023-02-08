@@ -3,15 +3,15 @@ from TrackerBase.center_tracker import PersonTracker
 from Reid.reID_nn import ReID
 from Yolo.yolo_nn import Yolo
 import tensorflow.keras.backend as K
+import time
+
 
 class Tracker():
     def __init__(self, center_to, ref_image):
         print("[INF] Creating all-in-one tracker...")
         self.yolo = Yolo()
         self.pt = PersonTracker(center_to)
-        self.reid = ReID(ref_image)
-        self.trackable_objects = None
-        self.tracked_to = None      
+        self.reid = ReID(ref_image)  
     
     @staticmethod
     def _draw_id(image, objectID, centroid, color):
@@ -26,22 +26,7 @@ class Tracker():
     def _draw_box(image, x_min, y_min, x_max, y_max, color):
         cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
         return image
-    
-    @staticmethod
-    def crop_im(img, start_x, start_y, end_x, end_y):
-        # enlarge the crop
-        new_start_y = int(start_y * 0.85)
-        new_end_y = int(end_y * 1.1)
-        new_start_x = int(start_x * 0.98)
-        new_end_x = int(end_x * 1.02)
 
-        if new_end_y > img.shape[0]:
-            new_end_y = img.shape[0]
-        if new_end_x > img.shape[1]:
-            new_end_x = img.shape[1]
-
-        return img[new_start_y:new_end_y, new_start_x:new_end_x]
-    
     def track(self, img, reid_on=True, draw_boxes=True, draw_id=True):
         boxes = self.yolo.predict(img)
         
@@ -89,6 +74,15 @@ def create_tracker(img):
     cv.destroyWindow("Select object for tracking")
     return tracker
         
+def display_fps(img, previous_time):
+    # measuring and displaying fps
+    current_time = time.time()
+    fps = 1/(current_time - previous_time)
+    previous_time = current_time
+    cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2,
+                (0, 0, 255), 3)
+    return previous_time
+
 def main():
     cap = cv.VideoCapture("test.mp4")
     previous_time = 0
@@ -120,16 +114,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import time
-    import cv2
-    
-    def display_fps(img, previous_time):
-        # measuring and displaying fps
-        current_time = time.time()
-        fps = 1/(current_time - previous_time)
-        previous_time = current_time
-        cv2.putText(img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 2,
-                    (0, 0, 255), 3)
-        return previous_time
-
-    main()
+     main()
