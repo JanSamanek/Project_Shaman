@@ -2,6 +2,9 @@ import socket
 import cv2
 import numpy as np
 import json
+from tracker import create_tracker, display_fps
+from Pose.pose_detector import PoseDetector
+import tensorflow.keras.backend as K
 
 class Server():
     def __init__(self):
@@ -21,13 +24,28 @@ class Server():
         print(f"[INF] Client connected from ip adress: {address[0]}...")
 
     def communicate(self):
+        tracker = None
+        pose_detector = None
+        
+        center = None
+        
+        previous_time = 0
+        
         while True:
-            frame = self._recieve_img()
+            img = self._recieve_img()
+            previous_time = display_fps(img, previous_time)
             
-            json_data = {"string": "hello"}
+            if tracker is not None:
+                img = tracker.track(img, reid_on=False)
+                center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
+                
+            if cv2.waitKey(1) & 0xFF == ord('s'):
+                tracker = create_tracker(img)
+                
+            json_data = {"center": center}
             self._send_json(json_data)
             
-            cv2.imshow("hello", frame)
+            cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
             
     def _send_json(self, json_data):

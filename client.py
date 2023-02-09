@@ -15,7 +15,7 @@ class Client:
 
     def communicate(self):
         # Create a VideoCapture object
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture('test.mp4')
 
         while True:
             # Read a frame from the video stream
@@ -23,6 +23,7 @@ class Client:
             self._send_img(frame)
             
             json_data = self._recieve_json()
+            print(json_data)
             
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image

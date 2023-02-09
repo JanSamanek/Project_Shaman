@@ -10,8 +10,9 @@ class ReID():
     IMG_SIZE = (128, 64)
 
     def __init__(self, ref_image):
+        print("  [INF] Initalizing Reid neural network...")
         self.ref_img = ReID._process_img(ref_image)
-        self.reid_model = load_model('Siamese Network/model/nn_backbone_resnet.h5')
+        self.reid_model = load_model('Reid/siamese_network.h5')
         self.conf = 0.7
         self.reid_model.predict([self.ref_img, self.ref_img])  # to reduce predicition time afterwards
         
@@ -37,7 +38,7 @@ class ReID():
         else:
             return None
 
-    # what to do if img is smaller than input size to no loose information
+    # what to do if img is smaller than input size to not lose information #!#!#!#!#!#!#!#!#!#!#!#!#!#!#!#!#!#!#!#!#!#!
     @staticmethod
     def _process_img(img):
         img = tf.image.convert_image_dtype(img, tf.float32)

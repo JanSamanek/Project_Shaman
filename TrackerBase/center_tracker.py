@@ -1,13 +1,13 @@
 from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
-from trackable_object import TrackableObject
+from TrackerBase.trackable_object import TrackableObject
 
 
 class PersonTracker:
 
     def __init__(self, centre_to, max_disappeared=50, max_distance=80):
-
+        print("  [INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
 

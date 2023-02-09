@@ -12,31 +12,23 @@ class PoseDetector:
         self.pose = self.mp_pose.Pose(**kwargs)
         self.pose_landmarks = []
 
-    def init_landmarks(self, img, draw=True):
+    def get_landmarks(self, img, draw=True):
+        lm_list = []
 
-        # to enhance performance
-        img.flags.writeable = False
-        # detecting pose and drawing landmarks, connections
-        # cv2 reads the image in BGR but mp needs RGB as input
-        img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img.flags.writeable = False     # to enhance performance
+        img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)       # cv2 reads the image in BGR but mp needs RGB as input
         self.results = self.pose.process(img_RGB)
         img.flags.writeable = True
 
         if self.results.pose_landmarks:
             if draw:
                 self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
-        return img
-
-    def get_landmarks(self):
-
-        lm_list = []
-
+                
         if self.results.pose_landmarks:
             for ID, lm in enumerate(self.results.pose_landmarks.landmark):
                 lm_list.append([ID, lm.x, lm.y])
             self.pose_landmarks = lm_list
-
-        return self.pose_landmarks
+        return img
 
     def detect_right_hand_above_nose(self):
         RIGHT_HAND_NUM = 16
@@ -48,7 +40,6 @@ class PoseDetector:
                 return True
             else:
                 return False
-
         except IndexError:
             print("missing hand or nose in video")
 
@@ -79,26 +70,26 @@ class PoseDetector:
             # calculate angle
             angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
                                  - math.atan2(position_pix_y1 - position_pix_y2, position_pix_x1 - position_pix_x2))
-
             if angle < 0:
                 angle += 360
-
-            # print(angle)
-
             return angle
+  
+    @staticmethod
+    def crop_im(img, start_x, start_y, end_x, end_y):
+        # enlarge the crop
+        new_start_y = int(start_y * 0.85)
+        new_end_y = int(end_y * 1.1)
+        new_start_x = int(start_x * 0.98)
+        new_end_x = int(end_x * 1.02)
 
+        if new_end_y > img.shape[0]:
+            new_end_y = img.shape[0]
+        if new_end_x > img.shape[1]:
+            new_end_x = img.shape[1]
 
-def display_fps(img, previous_time):
-
-    # measuring and displaying fps
-    current_time = time.time()
-    fps = 1/(current_time - previous_time)
-    previous_time = current_time
-    cv2.putText(img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 2,
-                (0, 0, 255), 3)
-    return previous_time
-
-
+        return img[new_start_y:new_end_y, new_start_x:new_end_x]
+    
+    
 def main():
     previous_time = 0
 
@@ -107,12 +98,9 @@ def main():
 
     while cap.isOpened():
         # reading the image from video capture
-        _, img = cap.read()
-        img = detector.init_landmarks(img)
+        _, img = cap.read() 
 
-        pose_list = detector.get_landmarks(img)
-
-        previous_time = display_fps(img, previous_time)
+        img = detector.get_landmarks(img)
 
         cv2.imshow("Vision", img)
 
