@@ -1,6 +1,5 @@
 import cv2 as cv
 from TrackerBase.center_tracker import PersonTracker
-from Reid.reID_nn import ReID
 from Yolo.yolo_nn import Yolo
 import tensorflow.keras.backend as K
 import time
@@ -10,8 +9,7 @@ class Tracker():
     def __init__(self, center_to, ref_image):
         print("[INF] Creating all-in-one tracker...")
         self.yolo = Yolo()
-        self.pt = PersonTracker(center_to)
-        self.reid = ReID(ref_image)  
+        self.pt = PersonTracker(center_to) 
     
     @staticmethod
     def _draw_id(image, objectID, centroid, color):
@@ -27,19 +25,9 @@ class Tracker():
         cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
         return image
 
-    def track(self, img, reid_on=True, draw_boxes=True, draw_id=True):
+    def track(self, img, draw_boxes=True, draw_id=True):
         boxes = self.yolo.predict(img)
         
-        if reid_on:
-            imgs = []
-            for box in boxes:
-                imgs.append(img[box[1]:box[3], box[0]: box[2]])
-            idx = self.reid.identificate(imgs)
-
-            if idx is not None:
-                cv.imshow("imgs idx", imgs[idx])
-                cv.waitKey(500)
-    
         self.trackable_objects = self.pt.update(boxes)
         self.tracked_to = self.trackable_objects.get(0, None)
 
@@ -91,7 +79,7 @@ def main():
         _, img = cap.read()
 
         if tracker is not None:
-            img = tracker.track(img, reid_on=False)
+            img = tracker.track(img)
             
         previous_time = display_fps(img, previous_time)
         cv.imshow('detector', img)
