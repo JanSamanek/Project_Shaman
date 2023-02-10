@@ -30,7 +30,7 @@ class Client:
         camera.observe(execute, names='value')
         
     def _send_img(self, img):
-        result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
+        result, image = cv2.imencode('.png', img)                           # Convert the frame to a JPEG image
         data = image.tobytes()                                              # Convert the image to a byte array
         self.client_socket.sendall(len(data).to_bytes(4, byteorder='big'))  # Send the image size
         self.client_socket.sendall(data)                                    # Send the image data
