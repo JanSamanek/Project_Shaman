@@ -29,9 +29,6 @@ entrypoints==0.4
 etils==1.0.0
 eventlet==0.33.1
 executing==1.1.1
-fiftyone==0.17.2
-fiftyone-brain==0.9.1
-fiftyone-db==0.3.0
 filelock==3.9.0
 fire==0.5.0
 flatbuffers==23.1.21

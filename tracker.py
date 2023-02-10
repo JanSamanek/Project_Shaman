@@ -9,7 +9,7 @@ class Tracker():
     def __init__(self, center_to, ref_image):
         print("[INF] Creating all-in-one tracker...")
         self.yolo = Yolo()
-        self.pt = PersonTracker(center_to) 
+        self.pt = PersonTracker(center_to)
     
     @staticmethod
     def _draw_id(image, objectID, centroid, color):
