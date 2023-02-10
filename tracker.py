@@ -5,7 +5,7 @@ import time
 
 
 class Tracker():
-    def __init__(self, center_to, ref_image):
+    def __init__(self, center_to):
         print("[INF] Creating all-in-one tracker...")
         self.yolo = Yolo()
         self.pt = PersonTracker(center_to)
@@ -56,8 +56,7 @@ def create_tracker(img):
     cv.destroyAllWindows()
     to_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
     center = calculate_center(*to_box)
-    ref_img = img[to_box[1]:to_box[1] + to_box[3], to_box[0]: to_box[0] + to_box[2]]
-    tracker = Tracker(center, ref_img)
+    tracker = Tracker(center)
     cv.destroyWindow("Select object for tracking")
     return tracker
         

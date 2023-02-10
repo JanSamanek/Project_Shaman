@@ -24,8 +24,8 @@ class Client:
     
             self._send_img(img)
             
-            json_data = self._recieve_json()
-            print(json_data)
+            # json_data = self._recieve_json()
+            # print(json_data)
             
         camera.observe(execute, names='value')
         
