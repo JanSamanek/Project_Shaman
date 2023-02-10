@@ -2,6 +2,7 @@ import socket
 import cv2
 import numpy as np
 import json
+from jetcam.csi_camera import CSICamera
 
 class Client:
     def __init__(self):   
@@ -15,16 +16,19 @@ class Client:
 
     def communicate(self):
         # Create a VideoCapture object
-        cap = cv2.VideoCapture('test.mp4')
+        camera = CSICamera(width=300, height=300)
+        camera.running = True
 
-        while True:
-            # Read a frame from the video stream
-            ret, frame = cap.read()
-            self._send_img(frame)
+        def execute(change):
+            img = change['new']
+    
+            self._send_img(img)
             
             json_data = self._recieve_json()
             print(json_data)
             
+        camera.observe(execute, names='value')
+        
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
         data = image.tobytes()                                              # Convert the image to a byte array
