@@ -23,7 +23,7 @@ class Tracker():
     
     @staticmethod
     def _draw_box(image, x_min, y_min, x_max, y_max, color):
-        cv.rectangle(image, (int(image.width * x_min), int(image.height * y_min)), (int(image.width * x_max), int(image.height * y_max)), color, 2)
+        cv.rectangle(image, (int(image.shape[1] * x_min), int(image.shape[0] * y_min)), (int(image.shape[1] * x_max), int(image.shape[0] * y_max)), color, 2)
         return image
 
     def track(self, img, draw_boxes=True, draw_id=True):
