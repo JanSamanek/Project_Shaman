@@ -1,7 +1,6 @@
 import cv2 as cv
 from TrackerBase.center_tracker import PersonTracker
 from Yolo.yolo_nn import Yolo
-import tensorflow.keras.backend as K
 import time
 
 
