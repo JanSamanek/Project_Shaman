@@ -36,7 +36,7 @@ class Server():
             previous_time = display_fps(img, previous_time)
             
             if tracker is not None:
-                img = tracker.track(img, reid_on=False)
+                img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
                 
             if cv2.waitKey(1) & 0xFF == ord('s'):

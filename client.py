@@ -7,7 +7,7 @@ class Client:
     def __init__(self):   
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
 
-    def connect_to_server(self, host='10.0.1.103', port=8080):
+    def connect_to_server(self, host='192.168.88.57', port=8080):
         # Connect to the server
         print(f"[INF] Trying to connect to ip adress: {host}, port: {port}...")
         self.client_socket.connect((host, port))
