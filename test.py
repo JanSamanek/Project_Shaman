@@ -1,4 +1,13 @@
-import torch
+from jetcam.csi_camera import CSICamera
+import cv2
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("Using device:", device)
+camera = CSICamera(width=300, height=300)
+
+camera.running = True
+
+def execute(change):
+    img = change['new']
+    cv2.imshow("hello", img)
+    cv2.waitKey(1)
+    
+camera.observe(execute, names='value')
