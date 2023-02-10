@@ -38,8 +38,8 @@ class Server():
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
                 
-            # json_data = {"center": center}
-            # self._send_json(json_data)
+            json_data = {"center": center}
+            self._send_json(json_data)
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
