@@ -3,6 +3,7 @@ from jetbot import ObjectDetector
 class Detector():
 
     def __init__(self):
+        print("[INF] Creating object detector...")
         self.model = ObjectDetector('ssd_mobilenet_v2_coco.engine')
 
     def predict(self, img):
