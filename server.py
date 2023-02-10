@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 import json
 from tracker import create_tracker, display_fps
-import tensorflow.keras.backend as K
 
 class Server():
     def __init__(self):

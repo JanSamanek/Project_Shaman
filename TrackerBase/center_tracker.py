@@ -42,7 +42,7 @@ class PersonTracker:
         center_box_dict = {}
         # calculates the centre and assigns in to the new_persons_center variable
         for i, box in enumerate(boxes):
-            centroid = _calculate_center(*box)
+            centroid = _calculate_center(box)
             new_centers[i] = centroid
             center_box_dict[tuple(centroid)] = box
 
@@ -105,7 +105,7 @@ class PersonTracker:
         return self.to_dict
 
 
-def _calculate_center(start_x, start_y, end_x, end_y):
-    center_x = int((start_x + end_x) / 2.0)
-    center_y = int((start_y + end_y) / 2.0)
-    return center_x, center_y
+def _calculate_center(bbox):
+        center_x = (bbox[0] + bbox[2]) / 2.0
+        center_y = (bbox[1] + bbox[3]) / 2.0
+        return (center_x, center_y)
