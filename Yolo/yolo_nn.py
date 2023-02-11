@@ -5,7 +5,7 @@ class Yolo:
     def __init__(self):
         print("  [INF] Initializing Yolo neural network...")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = torch.hub.load('ultralytics/yolov5','yolov5s')
+        self.model = torch.hub.load('ultralytics/yolov5','yolov5n')
         self.model.to(device)
         self.model.conf = 0.5
 
@@ -21,3 +21,32 @@ class Yolo:
             
         return boxes
     
+if __name__ == '__main__':
+    import cv2 as cv
+    import time
+    
+    def display_fps(img, previous_time):
+        # measuring and displaying fps
+        current_time = time.time()
+        fps = 1/(current_time - previous_time)
+        previous_time = current_time
+        cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
+        return previous_time
+
+    cap = cv.VideoCapture("test.mp4")
+    previous_time = 0
+    yolo = Yolo()
+    
+    while cap.isOpened():
+        _, img = cap.read()
+            
+        previous_time = display_fps(img, previous_time)
+        cv.imshow('detector', img)
+            
+        print(yolo.predict(img))
+        
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv.destroyAllWindows()

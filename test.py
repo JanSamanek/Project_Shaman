@@ -1,13 +1,6 @@
-from jetcam.csi_camera import CSICamera
-import cv2
+# Load YOLOv8n, train it on COCO128 for 3 epochs and predict an image with it
+from ultralytics import YOLO
 
-camera = CSICamera(width=300, height=300)
-
-camera.running = True
-
-def execute(change):
-    img = change['new']
-    cv2.imshow("hello", img)
-    cv2.waitKey(1)
-    
-camera.observe(execute, names='value')
+model = YOLO('yolov8n.pt')  # load a pretrained YOLOv8n detection model
+model.train(data='coco128.yaml', epochs=3)  # train the model
+model('https://ultralytics.com/images/bus.jpg')  # predict on an image
