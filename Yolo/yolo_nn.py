@@ -5,7 +5,7 @@ class Yolo:
     def __init__(self):
         print("  [INF] Initializing Yolo neural network...")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = torch.hub.load('ultralytics/yolov5','yolov5n')
+        self.model = torch.hub.load('ultralytics/yolov5','yolov5s')
         self.model.to(device)
         self.model.conf = 0.5
 
