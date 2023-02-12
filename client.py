@@ -20,8 +20,8 @@ class Client:
         camera.running = True
 
         robot = Robot()
-        speed = 0.1
-        turn_gain = 0.2
+        speed = 0.4
+        turn_gain = 0.8
         
         def execute(change):
             img = change['new']
@@ -40,8 +40,7 @@ class Client:
                 self.disconnect()
             else:
                 centerx = center[0] - img.shape[0]/2
-                print(centerx)
-                # robot.set_motors((speed + turn_gain * centerx), (speed - turn_gain * centerx))
+                robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
 
         camera.observe(execute, names='value')
         
