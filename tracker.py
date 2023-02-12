@@ -1,13 +1,13 @@
 import cv2 as cv
 from TrackerBase.center_tracker import PersonTracker
-from test import Detector
+from Yolo.yolo_nn import Yolo
 import time
 
 
 class Tracker():
     def __init__(self, center_to):
         print("[INF] Creating all-in-one tracker...")
-        self.detector = ObjectDetector()
+        self.yolo = Yolo()
         self.pt = PersonTracker(center_to)
     
     @staticmethod
@@ -21,13 +21,11 @@ class Tracker():
     
     @staticmethod
     def _draw_box(image, x_min, y_min, x_max, y_max, color):
-        width = image.shape[1]
-        height = image.shape[0]
-        cv.rectangle(image, (x_min * width, y_min* height), (x_max * width, y_max * height), color, 2)
+        cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
         return image
 
     def track(self, img, draw_boxes=True, draw_id=True):
-        boxes = self.detector.predict(img)
+        boxes = self.yolo.predict(img)
         
         self.trackable_objects = self.pt.update(boxes)
         self.tracked_to = self.trackable_objects.get(0, None)
