@@ -30,10 +30,15 @@ class Client:
             
             json_data = self._recieve_json()
             center = json_data['center'] 
+            stop = json_data['stop']
+            
             print(center)
             
             if center is None:
                 robot.forward(speed)
+            elif stop:
+                robot.stop()
+                camera.stop()
             else:
                 centerx = center[0] - img.shape[0]/2
                 robot.set_motors((speed + turn_gain * centerx), (speed - turn_gain * centerx))

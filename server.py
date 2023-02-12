@@ -30,6 +30,7 @@ class Server():
         while True:
             img = self._recieve_img()
             previous_time = display_fps(img, previous_time)
+            json_data = {}
             
             if tracker is not None:
                 img = tracker.track(img)
@@ -37,8 +38,12 @@ class Server():
                 
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
+            
+            if cv2.waitkey(1) & 0xFF == ord('q'):
+                json_data['stop'] = True
                 
-            json_data = {"center": center}
+            json_data['center'] = center
+            
             self._send_json(json_data)
             
             cv2.imshow("*** TRACKING ***", img)
