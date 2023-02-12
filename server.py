@@ -39,8 +39,10 @@ class Server():
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
             
-            if cv2.waitkey(1) & 0xFF == ord('q'):
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 json_data['stop'] = True
+            else:
+                json_data['stop'] = False
                 
             json_data['center'] = center
             

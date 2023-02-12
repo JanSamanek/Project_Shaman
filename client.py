@@ -20,8 +20,8 @@ class Client:
         camera.running = True
 
         robot = Robot()
-        speed = 0.4
-        turn_gain = 0.8
+        speed = 0.1
+        turn_gain = 0.2
         
         def execute(change):
             img = change['new']
