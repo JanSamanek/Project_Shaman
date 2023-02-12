@@ -33,6 +33,11 @@ if __name__ == '__main__':
         cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
         return previous_time
 
+    def _draw_box(image, x_min, y_min, x_max, y_max, color):
+        cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
+        return image
+    
+    
     cap = cv.VideoCapture("test.mp4")
     previous_time = 0
     yolo = Yolo()
@@ -41,10 +46,12 @@ if __name__ == '__main__':
         _, img = cap.read()
             
         previous_time = display_fps(img, previous_time)
+        boxes = yolo.predict(img)
+        for box in boxes:
+             _draw_box(img, *box, (255, 0, 0))
+        
         cv.imshow('detector', img)
             
-        print(yolo.predict(img))
-        
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 

@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 import json
 from jetcam.csi_camera import CSICamera
-
+from jetbot import Robot
 class Client:
     def __init__(self):   
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
@@ -19,14 +19,25 @@ class Client:
         camera = CSICamera(width=300, height=300)
         camera.running = True
 
+        robot = Robot()
+        speed = 0.4
+        turn_gain = 0.8
+        
         def execute(change):
             img = change['new']
     
             self._send_img(img)
             
             json_data = self._recieve_json()
-            print(json_data)
+            center = json_data['center'] 
+            print(center)
             
+            if center is None:
+                robot.forward(speed)
+            else:
+                centerx = center[0] - img.shape[0]/2
+                robot.set_motors((speed + turn_gain * centerx), (speed - turn_gain * centerx))
+
         camera.observe(execute, names='value')
         
     def _send_img(self, img):
