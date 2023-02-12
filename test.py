@@ -1,40 +1,40 @@
-# Load YOLOv8n, train it on COCO128 for 3 epochs and predict an image with it
-from ultralytics import YOLO
+from jetbot import ObjectDetector
 
-yolo = YOLO('yolov8n.pt')  # load a pretrained YOLOv8n detection model
+class Detector():
+    def __init__(self):
+        self.model = ObjectDetector('ssd_mobilenet_v2_coco.engine')
 
-import cv2 as cv
-import time
-
-def display_fps(img, previous_time):
-    # measuring and displaying fps
-    current_time = time.time()
-    fps = 1/(current_time - previous_time)
-    previous_time = current_time
-    cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
-    return previous_time
-
-cap = cv.VideoCapture("test.mp4")
-previous_time = 0
-
-def _draw_box(image, x_min, y_min, x_max, y_max, color):
-    cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
-    return image
+    def predict(self, img):
+        detections = self.model(img)
+        boxes = []
+        for det in detections[0]:
+            if det['label'] == 1:
+                bbox = det['bbox']
+                boxes.append((bbox[0], bbox[1], bbox[2], bbox[3]))
+        return boxes
     
-while cap.isOpened():
-    _, img = cap.read()
-        
-    previous_time = display_fps(img, previous_time)
-        
-    results = yolo.predict(img)
-    for detection in results[0].boxes.boxes:
-        if detection[5] == 0:
-            _draw_box(img, int(detection[0]), int(detection[1]), int(detection[2]), int(detection[3]), (255, 0, 0))
-        
-    cv.imshow('detector', img)
+if __name__ == '__main__':
+    from jetcam import CSICamera
+    import cv2 as cv
     
-    if cv.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cap.release()
-cv.destroyAllWindows()
+    def _draw_box(image, x_min, y_min, x_max, y_max, color):
+        width = image.shape[1]
+        height = image.shape[0]
+        cv.rectangle(image, (x_min * width, y_min* height), (x_max * width, y_max * height), color, 2)
+        return image
+    
+    camera = CSICamera(width=300, height=300)
+    camera.running = True
+    detector = Detector()
+    
+    def execute(change):
+        img = change['new']
+        boxes = detector.predict(img)
+        
+        for box in boxes:
+            _draw_box(img, *box, (255,0,0))
+            
+        cv.imshow('detector', img)
+        cv.waitKey(1)
+    
+    camera.observe(execute, names='value')
