@@ -4,14 +4,6 @@ import numpy as np
 import json
 from jetcam.csi_camera import CSICamera
 from jetbot import Robot
-from test import Detector
-
-def _draw_box(image, x_min, y_min, x_max, y_max, color):
-    width = image.shape[1]
-    height = image.shape[0]
-    cv2.rectangle(image, (x_min * width, y_min* height), (x_max * width, y_max * height), color, 2)
-    return image
-    
 class Client:
     def __init__(self):   
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
@@ -26,34 +18,29 @@ class Client:
         # Create a VideoCapture object
         camera = CSICamera(width=300, height=300)
         camera.running = True
-        detector = Detector()
-        
+
         robot = Robot()
         speed = 0.15
         turn_gain = 0.3
         
         def execute(change):
             img = change['new']
-            boxes = detector.predict(img)
-        
-            for box in boxes:
-                _draw_box(img, *box, (255,0,0))
-                
+    
             self._send_img(img)
             
             json_data = self._recieve_json()
             center = json_data['center'] 
             stop = json_data['stop']
             
-            # if center is None:
-            #     robot.forward(speed)
-            # elif stop:
-            #     robot.stop()
-            #     camera.stop()
-            #     self.disconnect()
-            # else:
-            #     centerx = center[0] - img.shape[0]/2
-            #     robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
+            if center is None:
+                robot.forward(speed)
+            elif stop:
+                robot.stop()
+                camera.stop()
+                self.disconnect()
+            else:
+                centerx = center[0] - img.shape[0]/2
+                robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
 
         camera.observe(execute, names='value')
         
