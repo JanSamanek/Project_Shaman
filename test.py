@@ -14,7 +14,7 @@ class Detector():
         return boxes
     
 if __name__ == '__main__':
-    from jetcam import CSICamera
+    from jetcam.csi_camera import CSICamera
     import cv2 as cv
     
     def _draw_box(image, x_min, y_min, x_max, y_max, color):
