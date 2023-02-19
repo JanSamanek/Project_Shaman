@@ -1,40 +1,25 @@
-from jetbot import ObjectDetector
+import cv2 as cv
 
-class Detector():
-    def __init__(self):
-        self.model = ObjectDetector('ssd_mobilenet_v2_coco.engine')
+pipeline = "udpsrc port=8000 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+print(cv.getBuildInformation())
 
-    def predict(self, img):
-        detections = self.model(img)
-        boxes = []
-        for det in detections[0]:
-            if det['label'] == 1:
-                bbox = det['bbox']
-                boxes.append((bbox[0], bbox[1], bbox[2], bbox[3]))
-        return boxes
+cap = cv.VideoCapture(pipeline, cv.CAP_GSTREAMER)
+
+if not cap.isOpened():
+    print("Failed to open pipeline")
+    exit()
     
-if __name__ == '__main__':
-    from jetcam.csi_camera import CSICamera
-    import cv2 as cv
+while True:
+    success, img = cap.read()
     
-    def _draw_box(image, x_min, y_min, x_max, y_max, color):
-        width = image.shape[1]
-        height = image.shape[0]
-        cv.rectangle(image, (x_min * width, y_min* height), (x_max * width, y_max * height), color, 2)
-        return image
+    if not success:
+        print('empty frame')
+        continue
     
-    camera = CSICamera(width=300, height=300)
-    camera.running = True
-    detector = Detector()
-    
-    def execute(change):
-        img = change['new']
-        boxes = detector.predict(img)
+    cv.imshow("GSTREAMER", img)
         
-        for box in boxes:
-            _draw_box(img, *box, (255,0,0))
-            
-        cv.imshow('detector', img)
-        cv.waitKey(1)
+    if cv.waitKey(1) & 0xFF == ord('q'):
+        break
     
-    camera.observe(execute, names='value')
+cap.release()
+cv.destroyAllWindows()
