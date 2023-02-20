@@ -38,7 +38,7 @@ if __name__ == '__main__':
         return image
     
     
-    cap = cv.VideoCapture("test.mp4")
+    cap = cv.VideoCapture("/home/jan/Project_Shaman/test.mp4")
     previous_time = 0
     yolo = Yolo()
     
