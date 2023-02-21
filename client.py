@@ -44,7 +44,6 @@ class Client:
             else:
                 centerx = center[0]
                 #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
-                print("brm, brm motor")
         
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
@@ -61,7 +60,7 @@ class Client:
     
     def disconnect(self):
         # self.gstreamer_pipeline.terminate()
-        print("[INF] Gstreamer pipeline disconnected")
+        # print("[INF] Gstreamer pipeline disconnected")
         self.client_socket.close()
         print("[INF] Client disconnected...")
 

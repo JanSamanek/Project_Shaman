@@ -12,10 +12,8 @@ class Server():
         self._start_server()
         
     def _start_server(self):
-        host = socket.gethostname()
-        ip_adress = socket.gethostbyname(host)
-        self.server_socket.bind((host, self.server_port))
-        print(f"[INF] Server listening on ip adress: {ip_adress}, port: {self.server_port}...")
+        self.server_socket.bind(('', self.server_port))
+        print(f"[INF] Server listening on port: {self.server_port}...")
         self.server_socket.listen(5)
     
     def accept_new_client(self):
@@ -28,7 +26,7 @@ class Server():
         center = None
         previous_time = 0
         
-        pipeline = f"gst-launch-1.0 udpsrc port=5000 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+        pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
         if not cap.isOpened():
