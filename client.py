@@ -2,7 +2,6 @@ import socket
 import cv2
 import subprocess
 import json
-from jetcam.csi_camera import CSICamera
 from jetbot import Robot
 
 class Client:
@@ -24,10 +23,6 @@ class Client:
         print(f"[INF] Streaming video to {self.host} on port {self.port} ...")
 
     def communicate(self):
-        # Create a VideoCapture object
-        camera = CSICamera(width=300, height=300)
-        camera.running = True
-
         robot = Robot()
         speed = 0.15
         turn_gain = 0.3
@@ -41,11 +36,11 @@ class Client:
             # robot.forward(speed)
         elif stop:
             robot.stop()
-            camera.stop()
             self.disconnect()
         else:
             centerx = center[0]
-            robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
+            #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
+            print("brm, brm motor")
         
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
@@ -67,7 +62,7 @@ class Client:
 
 if __name__ == '__main__':
     client = Client("192.168.0.159")
-    # client.connect_to_server()
+    client.connect_to_server()
     client.start_streaming()
     client.communicate()
     
