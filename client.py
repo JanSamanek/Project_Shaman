@@ -31,6 +31,7 @@ class Client:
 
         while True:
             json_data = self._recieve_json()
+            print(json_data)
             center = json_data['center'] 
             stop = json_data['stop']
             
