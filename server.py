@@ -7,7 +7,7 @@ from tracker import create_tracker, display_fps
 class Server():
     def __init__(self, server_port=8080, gstreamer_port=5000):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # Create a socket object
-        self.port = server_port
+        self.server_port = server_port
         self.gstreamer_port = gstreamer_port
         self._start_server()
         
@@ -28,16 +28,16 @@ class Server():
         center = None
         previous_time = 0
         
-        pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port}! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+        pipeline = f"gst-launch-1.0 udpsrc port=5000 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
         if not cap.isOpened():
             print("[INF] Failed to open pipeline ...")
             exit()
         else:
-            print(f"[INF] Connected to pipeline on port: {self.gstreamer_port}")
+            print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
-        while cap.IsOpened:
+        while cap.isOpened:
             success, img = cap.read()
             previous_time = display_fps(img, previous_time)
             json_data = {}

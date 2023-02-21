@@ -60,16 +60,14 @@ class Client:
         return json.loads(json_data)
     
     def disconnect(self):
-        self.gstreamer_pipeline.terminate()
+        # self.gstreamer_pipeline.terminate()
         print("[INF] Gstreamer pipeline disconnected")
         self.client_socket.close()
         print("[INF] Client disconnected...")
 
 if __name__ == '__main__':
     client = Client("192.168.0.159")
-    client.start_streaming()
-    while True:
-        pass
+    # client.start_streaming()
     client.connect_to_server()
     client.communicate()
     
