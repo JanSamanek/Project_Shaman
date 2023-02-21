@@ -38,6 +38,7 @@ class Client:
             elif stop:
                 robot.stop()
                 self.disconnect()
+                break
             else:
                 centerx = center[0]
                 #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
@@ -63,7 +64,7 @@ class Client:
 
 if __name__ == '__main__':
     client = Client("127.0.1.1")
-    client.connect_to_server()
     client.start_streaming()
+    client.connect_to_server()
     client.communicate()
     
