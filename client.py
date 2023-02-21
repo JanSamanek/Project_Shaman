@@ -18,9 +18,10 @@ class Client:
         print(f"[INF] Connected to ip adress: {self.host}, port: {self.port}...")
 
     def start_streaming(self):
-        print(f"[INF] Staming video to {self.host} on port {self.port} ...")
+        print(f"[INF] Starting to stream video to {self.host} on port {self.port} ...")
         pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! \
                         nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.port}"
+        print(pipeline)
         subprocess.Popen(pipeline.split())
 
     def communicate(self):
