@@ -20,8 +20,9 @@ class Client:
     def start_streaming(self):
         print(f"[INF] Deploying Gstreamer pipeline ...")
         pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.gstreamer_port}"
-        subprocess.Popen(pipeline.split())
-        print(f"[INF] Streaming video to {self.host} on port {self.gstreamer_port} ...")
+        print(pipeline)
+        self.gstreamer_pipeline = subprocess.Popen(pipeline.split())
+        print(f"[INF] Streaming video to ip adress: {self.host}, port: {self.gstreamer_port} ...")
 
     def communicate(self):
         robot = Robot()
@@ -59,13 +60,16 @@ class Client:
         return json.loads(json_data)
     
     def disconnect(self):
-        print("[INF] Client dissconnecting...")
+        self.gstreamer_pipeline.terminate()
+        print("[INF] Gstreamer pipeline disconnected")
         self.client_socket.close()
         print("[INF] Client disconnected...")
 
 if __name__ == '__main__':
-    client = Client("127.0.1.1")
+    client = Client("192.168.0.159")
     client.start_streaming()
+    while True:
+        pass
     client.connect_to_server()
     client.communicate()
     

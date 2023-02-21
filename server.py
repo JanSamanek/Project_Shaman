@@ -34,6 +34,8 @@ class Server():
         if not cap.isOpened():
             print("[INF] Failed to open pipeline ...")
             exit()
+        else:
+            print(f"[INF] Connected to pipeline on port: {self.gstreamer_port}")
 
         while cap.IsOpened:
             success, img = cap.read()
