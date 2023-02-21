@@ -1,19 +1,27 @@
 import socket
 import cv2
-import numpy as np
+import subprocess
 import json
 from jetcam.csi_camera import CSICamera
 from jetbot import Robot
 
 class Client:
-    def __init__(self):   
+    def __init__(self, host='192.168.88.57', port=8080):   
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
+        self.host = host
+        self. port = port 
 
-    def connect_to_server(self, host='192.168.88.57', port=8080):
+    def connect_to_server(self):
         # Connect to the server
-        print(f"[INF] Trying to connect to ip adress: {host}, port: {port}...")
-        self.client_socket.connect((host, port))
-        print(f"[INF] Connected to ip adress: {host}, port: {port}...")
+        print(f"[INF] Trying to connect to ip adress: {self.host}, port: {self.port}...")
+        self.client_socket.connect((self.host, self.port))
+        print(f"[INF] Connected to ip adress: {self.host}, port: {self.port}...")
+
+    def start_streaming(self):
+        print(f"[INF] Staming video to {self.host} on port {self.port} ...")
+        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! \
+                        nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.port}"
+        subprocess.Popen(pipeline.split())
 
     def communicate(self):
         # Create a VideoCapture object
@@ -34,7 +42,8 @@ class Client:
             stop = json_data['stop']
             
             if center is None:
-                robot.forward(speed)
+                pass
+                # robot.forward(speed)
             elif stop:
                 robot.stop()
                 camera.stop()
@@ -65,6 +74,7 @@ class Client:
 
 if __name__ == '__main__':
     client = Client()
-    client.connect_to_server()
-    client.communicate()
+    #client.connect_to_server()
+    client.start_streaming()
+    #client.communicate()
     
