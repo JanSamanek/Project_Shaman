@@ -7,8 +7,8 @@ from tracker import create_tracker, display_fps
 class Server():
     def __init__(self, port=8080):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # Create a socket object
-        self._start_server()
         self.port = port
+        self._start_server()
         
     def _start_server(self):
         host = socket.gethostname()
@@ -57,10 +57,10 @@ class Server():
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
-        else:
-            cap.release()
-            print("[INF] Gtsreamer pipeline closed ... ")
-            self.close()
+        
+        cap.release()
+        print("[INF] Gtsreamer pipeline closed ... ")
+        self.close()
             
     def _send_json(self, json_data):
         json_str = json.dumps(json_data)
