@@ -22,6 +22,7 @@ class Client:
         pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.port}"
         subprocess.Popen(pipeline.split())
         print(f"[INF] Streaming video to {self.host} on port {self.port} ...")
+
     def communicate(self):
         # Create a VideoCapture object
         camera = CSICamera(width=300, height=300)
@@ -30,28 +31,21 @@ class Client:
         robot = Robot()
         speed = 0.15
         turn_gain = 0.3
-        
-        def execute(change):
-            img = change['new']
-    
-            self._send_img(img)
-            
-            json_data = self._recieve_json()
-            center = json_data['center'] 
-            stop = json_data['stop']
-            
-            if center is None:
-                pass
-                # robot.forward(speed)
-            elif stop:
-                robot.stop()
-                camera.stop()
-                self.disconnect()
-            else:
-                centerx = center[0] - img.shape[0]/2
-                robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
 
-        camera.observe(execute, names='value')
+        json_data = self._recieve_json()
+        center = json_data['center'] 
+        stop = json_data['stop']
+        
+        if center is None:
+            pass
+            # robot.forward(speed)
+        elif stop:
+            robot.stop()
+            camera.stop()
+            self.disconnect()
+        else:
+            centerx = center[0]
+            robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
         
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
@@ -75,5 +69,5 @@ if __name__ == '__main__':
     client = Client("192.168.0.159")
     # client.connect_to_server()
     client.start_streaming()
-    # client.communicate()
+    client.communicate()
     

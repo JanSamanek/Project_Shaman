@@ -5,15 +5,16 @@ import json
 from tracker import create_tracker, display_fps
 
 class Server():
-    def __init__(self):
+    def __init__(self, port=8080):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # Create a socket object
         self._start_server()
+        self.port = port
         
-    def _start_server(self, port=8080):
+    def _start_server(self):
         host = socket.gethostname()
         ip_adress = socket.gethostbyname(host)
-        self.server_socket.bind((host, port))
-        print(f"[INF] Server listening on ip adress: {ip_adress}, port: {port}...")
+        self.server_socket.bind((host, self.port))
+        print(f"[INF] Server listening on ip adress: {ip_adress}, port: {self.port}...")
         self.server_socket.listen(5)
     
     def accept_new_client(self):
@@ -26,8 +27,15 @@ class Server():
         center = None
         previous_time = 0
         
-        while True:
-            img = self._recieve_img()
+        pipeline = f"gst-launch-1.0 udpsrc port={self.port}! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+        cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+
+        if not cap.isOpened():
+            print("[INF] Failed to open pipeline ...")
+            exit()
+
+        while cap.IsOpened:
+            success, img = cap.read()
             previous_time = display_fps(img, previous_time)
             json_data = {}
             
@@ -49,6 +57,10 @@ class Server():
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
+        else:
+            cap.release()
+            print("[INF] Gtsreamer pipeline closed ... ")
+            self.close()
             
     def _send_json(self, json_data):
         json_str = json.dumps(json_data)
