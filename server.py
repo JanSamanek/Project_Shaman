@@ -70,7 +70,7 @@ class Server():
         return image
     
     def close(self):
-        print("[INF] Shuting server down...")  
+        print("[INF] Started server terminiation process...")  
         self.client_socket.close()
         self.server_socket.close()
         print("[INF] Server shut down...")  

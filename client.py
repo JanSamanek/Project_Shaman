@@ -18,12 +18,10 @@ class Client:
         print(f"[INF] Connected to ip adress: {self.host}, port: {self.port}...")
 
     def start_streaming(self):
-        print(f"[INF] Starting to stream video to {self.host} on port {self.port} ...")
-        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! \
-                        nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.port}"
-        print(pipeline)
+        print(f"[INF] Deploying Gstreamer pipeline ...")
+        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.port}"
         subprocess.Popen(pipeline.split())
-
+        print(f"[INF] Streaming video to {self.host} on port {self.port} ...")
     def communicate(self):
         # Create a VideoCapture object
         camera = CSICamera(width=300, height=300)
@@ -75,7 +73,7 @@ class Client:
 
 if __name__ == '__main__':
     client = Client()
-    #client.connect_to_server()
+    # client.connect_to_server()
     client.start_streaming()
-    #client.communicate()
+    # client.communicate()
     
