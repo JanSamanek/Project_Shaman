@@ -27,20 +27,21 @@ class Client:
         speed = 0.15
         turn_gain = 0.3
 
-        json_data = self._recieve_json()
-        center = json_data['center'] 
-        stop = json_data['stop']
-        
-        if center is None:
-            pass
-            # robot.forward(speed)
-        elif stop:
-            robot.stop()
-            self.disconnect()
-        else:
-            centerx = center[0]
-            #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
-            print("brm, brm motor")
+        while True:
+            json_data = self._recieve_json()
+            center = json_data['center'] 
+            stop = json_data['stop']
+            
+            if center is None:
+                pass
+                # robot.forward(speed)
+            elif stop:
+                robot.stop()
+                self.disconnect()
+            else:
+                centerx = center[0]
+                #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
+                print("brm, brm motor")
         
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
