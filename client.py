@@ -6,7 +6,7 @@ from jetcam.csi_camera import CSICamera
 from jetbot import Robot
 
 class Client:
-    def __init__(self, host='192.168.88.57', port=8080):   
+    def __init__(self, host, port=8080):   
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
         self.host = host
         self. port = port 
@@ -72,7 +72,7 @@ class Client:
         print("[INF] Client disconnected...")
 
 if __name__ == '__main__':
-    client = Client()
+    client = Client("192.168.0.159")
     # client.connect_to_server()
     client.start_streaming()
     # client.communicate()
