@@ -5,22 +5,23 @@ import json
 from jetbot import Robot
 
 class Client:
-    def __init__(self, host, port=8080):   
+    def __init__(self, host, server_port=8080, gstreamer_port=5000):   
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
         self.host = host
-        self. port = port 
+        self.server_port = server_port
+        self.gstreamer_port = gstreamer_port 
 
     def connect_to_server(self):
         # Connect to the server
-        print(f"[INF] Trying to connect to ip adress: {self.host}, port: {self.port}...")
-        self.client_socket.connect((self.host, self.port))
-        print(f"[INF] Connected to ip adress: {self.host}, port: {self.port}...")
+        print(f"[INF] Trying to connect to ip adress: {self.host}, port: {self.server_port}...")
+        self.client_socket.connect((self.host, self.server_port))
+        print(f"[INF] Connected to ip adress: {self.host}, port: {self.server_port}...")
 
     def start_streaming(self):
         print(f"[INF] Deploying Gstreamer pipeline ...")
-        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.port}"
+        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.gstreamer_port}"
         subprocess.Popen(pipeline.split())
-        print(f"[INF] Streaming video to {self.host} on port {self.port} ...")
+        print(f"[INF] Streaming video to {self.host} on port {self.gstreamer_port} ...")
 
     def communicate(self):
         robot = Robot()

@@ -10,8 +10,8 @@ def display_fps(img, previous_time):
     cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
     return previous_time
 
-
-pipeline = "gst-launch-1.0 udpsrc port=5000 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+port = 5000
+pipeline = f"gst-launch-1.0 udpsrc port={port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
 # print(cv.getBuildInformation())
 
 cap = cv.VideoCapture(pipeline, cv.CAP_GSTREAMER)

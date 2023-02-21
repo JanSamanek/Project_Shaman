@@ -5,16 +5,17 @@ import json
 from tracker import create_tracker, display_fps
 
 class Server():
-    def __init__(self, port=8080):
+    def __init__(self, server_port=8080, gstreamer_port=5000):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # Create a socket object
-        self.port = port
+        self.port = server_port
+        self.gstreamer_port = gstreamer_port
         self._start_server()
         
     def _start_server(self):
         host = socket.gethostname()
         ip_adress = socket.gethostbyname(host)
-        self.server_socket.bind((host, self.port))
-        print(f"[INF] Server listening on ip adress: {ip_adress}, port: {self.port}...")
+        self.server_socket.bind((host, self.server_port))
+        print(f"[INF] Server listening on ip adress: {ip_adress}, port: {self.server_port}...")
         self.server_socket.listen(5)
     
     def accept_new_client(self):
@@ -27,7 +28,7 @@ class Server():
         center = None
         previous_time = 0
         
-        pipeline = f"gst-launch-1.0 udpsrc port={self.port}! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+        pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port}! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
         if not cap.isOpened():
