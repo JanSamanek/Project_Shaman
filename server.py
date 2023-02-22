@@ -54,7 +54,6 @@ class Server():
             json_data['center'] = center
             
             self._send_json(json_data)
-            # self._wait_for_mess_acknowledgement()
 
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
@@ -81,9 +80,6 @@ class Server():
         image = cv2.imdecode(image, cv2.IMREAD_COLOR)  
         
         return image
-    
-    def _wait_for_mess_acknowledgement(self):
-        self.client_socket.recv(10)
 
     def close(self):
         print("[INF] Started server terminiation process...")  
