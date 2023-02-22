@@ -26,8 +26,8 @@ class Client:
 
     def communicate(self):
         robot = Robot()
-        speed = 0.15
-        turn_gain = 0.3
+        speed = 0.015
+        turn_gain = 0.03
 
         while True:
             json_data = self._recieve_json()
