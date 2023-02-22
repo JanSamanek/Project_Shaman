@@ -26,8 +26,8 @@ class Client:
 
     def communicate(self):
         robot = Robot()
-        speed = 0.010
-        turn_gain = 0.05
+        speed = 0.15
+        turn_gain = 0.2
 
         while True:
             json_data = self._recieve_json()
@@ -43,8 +43,8 @@ class Client:
                 break
             else:
                 print(center_x)
-                mot_speed_1 = speed + turn_gain * center_x//1500
-                mot_speed_2 = (speed - turn_gain * center_x//1500)
+                mot_speed_1 = speed + turn_gain * center_x//1000
+                mot_speed_2 = speed - turn_gain * center_x//1000
                 print(mot_speed_1," : ",  mot_speed_2)
                 robot.set_motors(mot_speed_1, mot_speed_2)
         
