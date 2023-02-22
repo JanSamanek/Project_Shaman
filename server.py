@@ -17,8 +17,7 @@ class Server():
         self.server_socket.listen(5)
     
     def accept_new_client(self):
-        # Wait for a client to connect
-        self.client_socket, address = self.server_socket.accept()
+        self.client_socket, address = self.server_socket.accept()       # Wait for a client to connect
         print(f"[INF] Client connected from ip adress: {address[0]}...")
 
     def communicate(self):
@@ -55,6 +54,7 @@ class Server():
             json_data['center'] = center
             
             self._send_json(json_data)
+            self._wait_for_mess_acknowledgement()
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
@@ -82,6 +82,9 @@ class Server():
         
         return image
     
+    def _wait_for_mess_acknowledgement(self):
+        self.client_socket.recv(10)
+
     def close(self):
         print("[INF] Started server terminiation process...")  
         self.client_socket.close()

@@ -33,7 +33,8 @@ class Client:
             json_data = self._recieve_json()
             center = json_data['center'] 
             stop = json_data['stop']
-            
+            self._send_mess_acknowledgement()
+
             if center is None:
                 pass
                 # robot.forward(speed)
@@ -56,9 +57,13 @@ class Client:
         json_data = b''
         while len(json_data) < size:
             json_data += self.client_socket.recv(1024)
-        print(json_data)
         return json.loads(json_data)
     
+    def _send_mess_acknowledgement(self):
+        mess = "recieved"
+        mess = mess.encode()
+        self.client_socket.sendall(mess.to_bytes(10, byteorder='big'))
+
     def disconnect(self):
         # self.gstreamer_pipeline.terminate()
         # print("[INF] Gstreamer pipeline disconnected")
