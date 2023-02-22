@@ -26,7 +26,7 @@ class Client:
 
     def communicate(self):
         robot = Robot()
-        speed = 0.15
+        speed = 0.1
         turn_gain = 0.2
 
         while True:
@@ -34,20 +34,21 @@ class Client:
             center_x = json_data['center_x'] 
             stop = json_data['stop']
 
-            if center_x is None:
-                pass
-                # robot.forward(speed)
+            if center_x is not None:
+                print(center_x)
+                #mot_speed_1 = speed + turn_gain * center_x//1000
+                #mot_speed_2 = speed - turn_gain * center_x//1000
+                mot_speed_1 = turn_gain * center_x//1000
+                mot_speed_2 = -turn_gain * center_x//1000
+                print(mot_speed_1," : ",  mot_speed_2)
+                robot.set_motors(mot_speed_1, mot_speed_2)
+            elif center_x is None:
+                robot.stop()
             elif stop:
                 robot.stop()
                 self.disconnect()
                 break
-            else:
-                print(center_x)
-                mot_speed_1 = speed + turn_gain * center_x//1000
-                mot_speed_2 = speed - turn_gain * center_x//1000
-                print(mot_speed_1," : ",  mot_speed_2)
-                robot.set_motors(mot_speed_1, mot_speed_2)
-        
+
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
         data = image.tobytes()                                              # Convert the image to a byte array
