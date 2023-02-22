@@ -31,10 +31,10 @@ class Client:
 
         while True:
             json_data = self._recieve_json()
-            center = json_data['center'] 
+            center_x = json_data['center_x'] 
             stop = json_data['stop']
 
-            if center is None:
+            if center_x is None:
                 pass
                 # robot.forward(speed)
             elif stop:
@@ -42,8 +42,7 @@ class Client:
                 self.disconnect()
                 break
             else:
-                centerx = center[0]
-                print(centerx)
+                print(center_x)
                 #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
         
     def _send_img(self, img):

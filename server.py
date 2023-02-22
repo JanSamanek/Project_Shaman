@@ -22,7 +22,7 @@ class Server():
 
     def communicate(self):
         tracker = None
-        center = None
+        center_x = None
         previous_time = 0
         
         pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
@@ -42,7 +42,8 @@ class Server():
             if tracker is not None:
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
-                
+                center_x = center[0] - img.shape[0]//2 if center is not None else None
+
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
             
@@ -51,7 +52,7 @@ class Server():
             else:
                 json_data['stop'] = False
                 
-            json_data['center'] = center
+            json_data['center_x'] = center_x
             
             self._send_json(json_data)
 
