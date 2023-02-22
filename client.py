@@ -33,7 +33,6 @@ class Client:
             json_data = self._recieve_json()
             center = json_data['center'] 
             stop = json_data['stop']
-            self._send_mess_acknowledgement()
 
             if center is None:
                 pass
@@ -54,9 +53,7 @@ class Client:
     
     def _recieve_json(self):
         size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
-        json_data = b''
-        while len(json_data) < size:
-            json_data += self.client_socket.recv(1024)
+        json_data += self.client_socket.recv(size)
         return json.loads(json_data)
     
     def _send_mess_acknowledgement(self):

@@ -54,8 +54,8 @@ class Server():
             json_data['center'] = center
             
             self._send_json(json_data)
-            self._wait_for_mess_acknowledgement()
-            
+            # self._wait_for_mess_acknowledgement()
+
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
         
