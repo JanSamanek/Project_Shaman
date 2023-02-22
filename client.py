@@ -61,8 +61,7 @@ class Client:
     
     def _send_mess_acknowledgement(self):
         mess = "recieved"
-        mess = mess.encode()
-        self.client_socket.sendall(mess.to_bytes(10, byteorder='big'))
+        self.client_socket.sendall(mess.encode())
 
     def disconnect(self):
         # self.gstreamer_pipeline.terminate()
