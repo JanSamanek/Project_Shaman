@@ -53,7 +53,7 @@ class Client:
     
     def _recieve_json(self):
         size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
-        json_data += self.client_socket.recv(size)
+        json_data = self.client_socket.recv(size)
         return json.loads(json_data)
     
     def _send_mess_acknowledgement(self):
