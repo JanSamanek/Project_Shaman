@@ -43,7 +43,7 @@ class Client:
                 break
             else:
                 print(center_x)
-                #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
+                robot.set_motors((speed + turn_gain * center_x//100), (speed - turn_gain * center_x//100))
         
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
