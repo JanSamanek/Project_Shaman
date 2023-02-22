@@ -43,6 +43,7 @@ class Client:
                 break
             else:
                 centerx = center[0]
+                print(centerx)
                 #robot.set_motors((speed + turn_gain * centerx/100), (speed - turn_gain * centerx/100))
         
     def _send_img(self, img):
