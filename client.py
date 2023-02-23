@@ -2,6 +2,7 @@ import socket
 import cv2
 import subprocess
 import json
+import time
 from jetbot import Robot
 
 class Client:
@@ -42,6 +43,8 @@ class Client:
                 mot_speed_1 = turn_gain * offset
                 mot_speed_2 = -turn_gain * offset
                 robot.set_motors(mot_speed_1, mot_speed_2)
+                time.sleep(0.05)
+                robot.stop()
             elif offset is None:
                 robot.stop()
             elif stop:

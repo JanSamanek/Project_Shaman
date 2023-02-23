@@ -22,7 +22,7 @@ class Server():
 
     def communicate(self):
         tracker = None
-        center_x = None
+        offset = None
         previous_time = 0
         
         pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
