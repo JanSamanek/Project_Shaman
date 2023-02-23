@@ -27,7 +27,7 @@ class Client:
     def communicate(self):
         robot = Robot()
         speed = 0.1
-        turn_gain = 0.1
+        turn_gain = 0.2
 
         while True:
         
@@ -37,13 +37,10 @@ class Client:
             stop = json_data['stop']
 
             if center_x is not None:
-                print("CENTER: ", center_x)
                 #mot_speed_1 = speed + turn_gain * center_x
                 #mot_speed_2 = speed - turn_gain * center_x
                 mot_speed_1 = turn_gain * center_x
                 mot_speed_2 = -turn_gain * center_x
-                print("MOTOR 1: ", mot_speed_1)
-                print("MOTOR 2: ", mot_speed_2)
                 robot.set_motors(mot_speed_1, mot_speed_2)
             elif center_x is None:
                 robot.stop()
