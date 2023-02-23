@@ -27,7 +27,7 @@ class Client:
     def communicate(self):
         robot = Robot()
         speed = 0.1
-        turn_gain = 0.3
+        turn_gain = 0.1
 
         while True:
         
@@ -61,7 +61,6 @@ class Client:
     def _recieve_json(self):
         size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
         json_data = self.client_socket.recv(size)
-        print(json_data)
         return json.loads(json_data)
 
     def disconnect(self):
