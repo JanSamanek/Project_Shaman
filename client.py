@@ -27,22 +27,22 @@ class Client:
     def communicate(self):
         robot = Robot()
         speed = 0.1
-        turn_gain = 0.19
+        turn_gain = 0.205
 
         while True:
         
             json_data = self._recieve_json()
 
-            center_x = json_data['center_x'] 
+            offset = json_data['offset'] 
             stop = json_data['stop']
 
-            if center_x is not None:
+            if offset is not None:
                 #mot_speed_1 = speed + turn_gain * center_x
                 #mot_speed_2 = speed - turn_gain * center_x
-                mot_speed_1 = turn_gain * center_x
-                mot_speed_2 = -turn_gain * center_x
+                mot_speed_1 = turn_gain * offset
+                mot_speed_2 = -turn_gain * offset
                 robot.set_motors(mot_speed_1, mot_speed_2)
-            elif center_x is None:
+            elif offset is None:
                 robot.stop()
             elif stop:
                 robot.stop()

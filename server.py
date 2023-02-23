@@ -46,8 +46,8 @@ class Server():
             if tracker is not None:
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
-                center = center if center is not None and img.shape[1] > center[0] > 0 else None
-                center_x = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
+                center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be bounaries, what about kalman?
+                offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
                 
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
@@ -56,8 +56,8 @@ class Server():
                 json_data['stop'] = True
             else:
                 json_data['stop'] = False
-                
-            json_data['center_x'] = center_x
+            
+            json_data['offset'] = offset
             
             self._send_json(json_data)
 
