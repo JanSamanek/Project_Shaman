@@ -70,7 +70,7 @@ class Client:
         print("[INF] Client disconnected...")
 
 if __name__ == '__main__':
-    client = Client("192.168.0.159")
+    client = Client("192.168.88.82")
     # client.start_streaming()
     client.connect_to_server()
     client.communicate()
