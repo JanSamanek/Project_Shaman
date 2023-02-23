@@ -32,10 +32,10 @@ class Tracker():
 
         if draw_id:
             for to in self.trackable_objects.values():
-                if to.ID == 0:
-                    img = Tracker._draw_id(img, to.ID, to.centroid, (18, 13, 212))
-                elif to.disappeared_count > 0:
+                if to.disappeared_count > 0:
                     img = Tracker._draw_id(img, to.ID, to.predicted_centroid, (253, 63, 28))
+                elif to.ID == 0:
+                    img = Tracker._draw_id(img, to.ID, to.centroid, (18, 13, 212))
                 else:
                     img = Tracker._draw_id(img, to.ID, to.centroid, (61, 254, 96))
 
