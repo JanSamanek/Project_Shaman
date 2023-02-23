@@ -36,6 +36,7 @@ class Server():
 
         while cap.isOpened:
             success, img = cap.read()
+            
             if not success:
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
@@ -54,6 +55,7 @@ class Server():
             
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 json_data['stop'] = True
+                break
             else:
                 json_data['stop'] = False
             
