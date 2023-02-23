@@ -27,7 +27,7 @@ class Client:
     def communicate(self):
         robot = Robot()
         speed = 0.1
-        turn_gain = 0.35
+        turn_gain = 0.45
 
         while True:
             try:
