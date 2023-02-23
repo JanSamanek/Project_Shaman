@@ -74,8 +74,12 @@ def main():
     tracker = None
     
     while cap.isOpened():
-        _, img = cap.read()
+        success, img = cap.read()
 
+        if not success:
+            print("[ERROR] Failed to fetch image from pipeline ...")
+            continue
+        
         if tracker is not None:
             img = tracker.track(img)
             

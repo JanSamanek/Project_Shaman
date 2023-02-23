@@ -36,6 +36,10 @@ class Server():
 
         while cap.isOpened:
             success, img = cap.read()
+            if not success:
+                print("[ERROR] Failed to fetch image from pipeline ...")
+                continue
+        
             previous_time = display_fps(img, previous_time)
             json_data = {}
             
