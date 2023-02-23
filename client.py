@@ -30,17 +30,11 @@ class Client:
         turn_gain = 0.45
 
         while True:
-            try:
-                json_data = self._recieve_json()
-            except json.JSONDecodeError as error:
-                print("[ERROR] Failed to load json data, emptying buffer ...")
-                # empty the buffer
-                self.client_socket.recv(0)
-                center_x = None
-                print("[INF] Seting center to None ...")
-            else:
-                center_x = json_data['center_x'] 
-                stop = json_data['stop']
+        
+            json_data = self._recieve_json()
+
+            center_x = json_data['center_x'] 
+            stop = json_data['stop']
 
             if center_x is not None:
                 print("CENTER: ", center_x)
