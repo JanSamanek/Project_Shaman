@@ -44,9 +44,6 @@ class Server():
             if not success:
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
-        
-            if save_video:
-                out.write(img)
 
             previous_time = display_fps(img, previous_time)
             json_data = {}
@@ -56,17 +53,21 @@ class Server():
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
                 center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be bounaries, what about kalman?
                 offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
+
+            json_data['offset'] = offset
+
+            if save_video:
+                out.write(img)
                 
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
-            
+
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 json_data['stop'] = True
+                self._send_json(json_data)
                 break
             else:
                 json_data['stop'] = False
-            
-            json_data['offset'] = offset
             
             self._send_json(json_data)
 
@@ -105,4 +106,4 @@ class Server():
 if __name__ == '__main__':
     server = Server()
     server.accept_new_client()
-    server.communicate(save_video=True)
+    server.communicate()

@@ -39,6 +39,7 @@ class Client:
 
             if stop:
                 robot.stop()
+                print("[INF] Stopping robot and disconecting from server ...")
                 self.disconnect()
                 break
             elif offset is not None:
@@ -65,7 +66,7 @@ class Client:
         # self.gstreamer_pipeline.terminate()
         # print("[INF] Gstreamer pipeline disconnected")
         self.client_socket.close()
-        print("[INF] Client disconnected...")
+        print("[INF] Connection closed ...")
 
 if __name__ == '__main__':
     client = Client("192.168.88.82")
