@@ -20,7 +20,7 @@ class Server():
         self.client_socket, address = self.server_socket.accept()       # Wait for a client to connect
         print(f"[INF] Client connected from ip adress: {address[0]}...")
 
-    def communicate(self):
+    def communicate(self, save_video=False):
         tracker = None
         offset = None
         previous_time = 0
@@ -34,6 +34,10 @@ class Server():
         else:
             print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
+        if save_video:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
+
         while cap.isOpened:
             success, img = cap.read()
             
@@ -41,6 +45,9 @@ class Server():
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
         
+            if save_video:
+                out.write(img)
+
             previous_time = display_fps(img, previous_time)
             json_data = {}
             
@@ -98,4 +105,4 @@ class Server():
 if __name__ == '__main__':
     server = Server()
     server.accept_new_client()
-    server.communicate()
+    server.communicate(save_video=True)
