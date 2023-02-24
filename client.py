@@ -6,24 +6,21 @@ import time
 from jetbot import Robot
 
 class Client:
-    def __init__(self, host, server_port=8080, gstreamer_port=5000):   
+    def __init__(self, host):   
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
         self.host = host
-        self.server_port = server_port
-        self.gstreamer_port = gstreamer_port 
-
-    def connect_to_server(self):
+        
+    def connect_to_server(self, server_port=8080):
         # Connect to the server
-        print(f"[INF] Trying to connect to ip adress: {self.host}, port: {self.server_port}...")
-        self.client_socket.connect((self.host, self.server_port))
-        print(f"[INF] Connected to ip adress: {self.host}, port: {self.server_port}...")
+        print(f"[INF] Trying to connect to ip adress: {self.host}, port: {server_port} ...")
+        self.client_socket.connect((self.host, server_port))
+        print(f"[INF] Connected to ip adress: {self.host}, port: {server_port} ...")
 
-    def start_streaming(self):
+    def start_streaming(self, gstreamer_port=5000):
         print(f"[INF] Deploying Gstreamer pipeline ...")
-        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={self.gstreamer_port}"
-        print(pipeline)
-        self.gstreamer_pipeline = subprocess.Popen(pipeline.split())
-        print(f"[INF] Streaming video to ip adress: {self.host}, port: {self.gstreamer_port} ...")
+        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.host} port={gstreamer_port}"
+        self.gstreamer_pipeline = subprocess.Popen(pipeline, stdout=subprocess.PIPE, shell=True)
+        print(f"[INF] Streaming video to ip adress: {self.host}, port: {gstreamer_port} ...")
 
     def communicate(self):
         robot = Robot()
@@ -63,14 +60,14 @@ class Client:
         return json.loads(json_data)
 
     def disconnect(self):
-        # self.gstreamer_pipeline.terminate()
-        # print("[INF] Gstreamer pipeline disconnected")
+        self.gstreamer_pipeline.terminate()
+        print("[INF] Gstreamer pipeline disconnected")
         self.client_socket.close()
         print("[INF] Connection closed ...")
 
 if __name__ == '__main__':
     client = Client("192.168.88.82")
-    # client.start_streaming()
+    client.start_streaming()
     client.connect_to_server()
     client.communicate()
     
