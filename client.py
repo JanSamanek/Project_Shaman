@@ -61,7 +61,7 @@ class Client:
 
     def disconnect(self):
         self.gstreamer_pipeline.terminate()
-        print("[INF] Gstreamer pipeline disconnected")
+        print("[INF] Gstreamer pipeline disconnected ...")
         self.client_socket.close()
         print("[INF] Connection closed ...")
 
