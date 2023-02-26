@@ -24,14 +24,12 @@ class Client:
 
     def communicate(self):
         robot = Robot()
-        speed = 0.1
-        turn_gain = 0.3
 
         while True:
         
             json_data = self._recieve_json()
 
-            offset = json_data['offset'] 
+            mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
             stop = json_data['stop']
 
             if stop:
@@ -39,13 +37,9 @@ class Client:
                 print("[INF] Stopping robot and disconecting from server ...")
                 self.disconnect()
                 break
-            elif offset is not None:
-                #mot_speed_1 = speed + turn_gain * center_x
-                #mot_speed_2 = speed - turn_gain * center_x
-                mot_speed_1 = turn_gain * offset
-                mot_speed_2 = -turn_gain * offset
+            elif mot_speed_1 is not None and mot_speed_2 is not None:
                 robot.set_motors(mot_speed_1, mot_speed_2)
-            elif offset is None:
+            elif mot_speed_1 is None or mot_speed_2 is None:
                 robot.stop()
 
     def _send_img(self, img):

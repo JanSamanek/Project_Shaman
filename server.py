@@ -22,6 +22,7 @@ class Server():
 
     def communicate(self, save_video=False):
         tracker = None
+        mot_speed_1, mot_speed_2 = None, None
         offset = None
         previous_time = 0
         
@@ -54,7 +55,15 @@ class Server():
                 center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be bounaries, what about kalman?
                 offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
 
-            json_data['offset'] = offset
+            #mot_speed_1 = speed + turn_gain * center_x
+            #mot_speed_2 = speed - turn_gain * center_x
+            if offset is not None:
+                turn_gain = 0.3
+                mot_speed_1, mot_speed_2  = turn_gain * offset, -turn_gain * offset
+            else:
+                mot_speed_1, mot_speed_2  = None, None
+
+            json_data['mot_speed'] = mot_speed_1, mot_speed_2
 
             if save_video:
                 out.write(img)
