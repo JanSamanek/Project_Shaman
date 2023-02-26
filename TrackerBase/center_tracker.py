@@ -32,6 +32,7 @@ class PersonTracker:
             # loop over the keys and mark persons as disappeared
             for to in self.to_dict.values():
                 to.disappeared_count += 1
+                to.centroid = None
                 # if person has disappeared more than the threshold is, delete them
                 if to.disappeared_count >= self.max_disappeared:
                     IDs_to_delete.append(to.ID)

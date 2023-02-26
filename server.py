@@ -53,8 +53,7 @@ class Server():
             if tracker is not None:
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
-                print("center: ", center)
-                center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be bounaries, what about kalman?
+                center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
                 offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
 
             mot_speed_1, mot_speed_2 = (turn_gain * offset, -turn_gain * offset) if offset is not None else (None, None)

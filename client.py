@@ -34,7 +34,7 @@ class Client:
 
             if stop:
                 robot.stop()
-                print("[INF] Stopping robot and disconecting from server ...")
+                print("[INF] Stopping robot and disconnecting from server ...")
                 self.disconnect()
                 break
             elif mot_speed_1 is not None and mot_speed_2 is not None:
