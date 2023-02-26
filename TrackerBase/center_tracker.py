@@ -99,7 +99,7 @@ class PersonTracker:
                     ID = IDs[row]
                     to = self.to_dict[ID]
                     to.disappeared_count += 1
-                    to.centroid = None # is this good??????????????????????
+                    to.centroid = None                                                      # is this good??????????????????????
 
                     if to.disappeared_count > self.max_disappeared:
                         self._deregister(ID)

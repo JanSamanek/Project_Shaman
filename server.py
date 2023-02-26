@@ -22,6 +22,7 @@ class Server():
 
     def communicate(self, save_video=False):
         tracker = None
+        turn_gain = 0.3
         mot_speed_1, mot_speed_2 = None, None
         offset = None
         previous_time = 0
@@ -35,9 +36,9 @@ class Server():
         else:
             print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
-        if save_video:
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
         while cap.isOpened:
             success, img = cap.read()
@@ -52,16 +53,11 @@ class Server():
             if tracker is not None:
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
+                print("center: ", center)
                 center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be bounaries, what about kalman?
                 offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
 
-            #mot_speed_1 = speed + turn_gain * center_x
-            #mot_speed_2 = speed - turn_gain * center_x
-            if offset is not None:
-                turn_gain = 0.3
-                mot_speed_1, mot_speed_2  = turn_gain * offset, -turn_gain * offset
-            else:
-                mot_speed_1, mot_speed_2  = None, None
+            mot_speed_1, mot_speed_2 = (turn_gain * offset, -turn_gain * offset) if offset is not None else (None, None)
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
 
