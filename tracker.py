@@ -1,14 +1,14 @@
 import cv2 as cv
 from TrackerBase.center_tracker import PersonTracker
 from Yolo.yolo_nn import Yolo
-import time
+from Utilities.display_functions import display_fps
 
 
 class Tracker():
     def __init__(self, center_to):
         print("[INF] Creating a new tracker...")
         self.yolo = Yolo()
-        self.pt = PersonTracker(center_to)
+        self.pt = PersonTracker(center_to, max_distance=300)
     
     @staticmethod
     def _draw_id(image, objectID, centroid, color):
@@ -59,14 +59,6 @@ def create_tracker(img):
     tracker = Tracker(center)
     cv.destroyWindow("Select object for tracking")
     return tracker
-        
-def display_fps(img, previous_time):
-    # measuring and displaying fps
-    current_time = time.time()
-    fps = 1/(current_time - previous_time)
-    previous_time = current_time
-    cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
-    return previous_time
 
 def main():
     cap = cv.VideoCapture("test.mp4")
@@ -80,6 +72,7 @@ def main():
             img = tracker.track(img)
             
         previous_time = display_fps(img, previous_time)
+        
         cv.imshow('detector', img)
 
         if cv.waitKey(1) & 0xFF == ord('s'):

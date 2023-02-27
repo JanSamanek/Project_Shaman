@@ -2,7 +2,8 @@ import socket
 import cv2
 import numpy as np
 import json
-from tracker import create_tracker, display_fps
+from tracker import create_tracker
+from Utilities.display_functions import display_fps, display_motor_speed
 
 class Server():
     def __init__(self, server_port=8080, gstreamer_port=5000):
