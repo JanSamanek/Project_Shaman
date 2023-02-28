@@ -66,7 +66,13 @@ class Client:
         print("[INF] Connection closed ...")
 
 if __name__ == '__main__':
-    client = Client("10.0.1.103")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Starts client on Jetson Nano")
+    parser.add_argument("ip", help="IP adress for the client to connect to")
+    args = parser.parse_args()
+    
+    client = Client(args.ip)
     client.start_streaming()
     client.connect_to_server()
     client.communicate()
