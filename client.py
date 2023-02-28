@@ -66,7 +66,7 @@ class Client:
         print("[INF] Connection closed ...")
 
 if __name__ == '__main__':
-    client = Client("110.0.1.103")
+    client = Client("10.0.1.103")
     client.start_streaming()
     client.connect_to_server()
     client.communicate()
