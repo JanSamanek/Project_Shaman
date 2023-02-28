@@ -4,6 +4,7 @@ import numpy as np
 import json
 from tracker import create_tracker
 from Utilities.display_functions import display_fps, display_motor_speed
+import time
 
 class Server():
     def __init__(self, server_port=8080, gstreamer_port=5000):
@@ -74,6 +75,7 @@ class Server():
             else:
                 json_data['stop'] = False
             
+            json_data['time'] = time.time()
             self._send_json(json_data)
 
             cv2.imshow("*** TRACKING ***", img)

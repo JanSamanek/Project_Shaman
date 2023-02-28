@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
+from Utilities.display_functions import display_fps
 
 class PoseDetector:
 
@@ -11,8 +12,11 @@ class PoseDetector:
         self.pose = self.mp_pose.Pose(**kwargs)
         self.pose_landmarks = []
 
-    def get_landmarks(self, img, draw=True):
+    def get_landmarks(self, img, box=None, draw=True):
         lm_list = []
+
+        if box is not None:
+            img = PoseDetector.crop_im(img, *box)
 
         img.flags.writeable = False     # to enhance performance
         img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)       # cv2 reads the image in BGR but mp needs RGB as input
@@ -56,7 +60,7 @@ class PoseDetector:
         except IndexError:
             print("missing hand or nose in video")
 
-    def detect_angle(self, img, point1, point2, point3):
+    def detect_angle(self, point1, point2, point3):
 
         # retrieve x, y position for each point
         try:
@@ -100,7 +104,8 @@ def main():
         _, img = cap.read() 
 
         img = detector.get_landmarks(img)
-
+        previous_time = display_fps(img, previous_time)
+        
         cv2.imshow("Vision", img)
 
         # breaks out of the loop if q is pressed

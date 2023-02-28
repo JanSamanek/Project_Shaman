@@ -31,7 +31,13 @@ class Client:
 
             mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
             stop = json_data['stop']
-
+            
+            # testing socket speed
+            time_start = json_data['time']
+            time_end = time.time()
+            elapsed_time = time_end - time_start
+            print("Time to send and recieve instructions: ", elapsed_time)
+            
             if stop:
                 robot.stop()
                 print("[INF] Stopping robot and disconnecting from server ...")
@@ -60,7 +66,7 @@ class Client:
         print("[INF] Connection closed ...")
 
 if __name__ == '__main__':
-    client = Client("192.168.88.82")
+    client = Client("110.0.1.103")
     client.start_streaming()
     client.connect_to_server()
     client.communicate()
