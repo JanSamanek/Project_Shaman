@@ -8,7 +8,7 @@ import time
 
 class Server():
     def __init__(self, server_port=8080, gstreamer_port=5000):
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)   # Create a socket object
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # Create a socket object
         self.server_port = server_port
         self.gstreamer_port = gstreamer_port
         self._start_server()

@@ -7,7 +7,7 @@ from jetbot import Robot
 
 class Client:
     def __init__(self, host):   
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # Create a socket object
+        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
         self.host = host
         
     def connect_to_server(self, server_port=8080):
