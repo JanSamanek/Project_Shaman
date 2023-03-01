@@ -76,7 +76,8 @@ class Server():
                 json_data['stop'] = False
             
             self._send_json(json_data)
-
+            self._recieve_ack()
+            
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
         
@@ -90,7 +91,10 @@ class Server():
         
         self.client_socket.sendall(len(data_bytes).to_bytes(4, byteorder='big'))
         self.client_socket.sendall(data_bytes)
-        
+    
+    def _recieve_ack(self):
+        self.client_socket.recv(1)
+
     def _recieve_img(self):
         size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
         data = b''

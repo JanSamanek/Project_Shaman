@@ -30,9 +30,6 @@ class Client:
             time_start = time.time()
             json_data = self._recieve_json()
 
-            if json_data is None:
-                continue
-
             mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
             stop = json_data['stop']
 
@@ -50,41 +47,23 @@ class Client:
             time_end = time.time()
             elapsed_time = time_end - time_start
             print("Time to send and recieve instructions: ", elapsed_time)
+            self._send_ack()
 
+            
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
         data = image.tobytes()                                              # Convert the image to a byte array
         self.client_socket.sendall(len(data).to_bytes(4, byteorder='big'))  # Send the image size
         self.client_socket.sendall(data)                                    # Send the image data
     
-    #def _recieve_json(self):
-     #   self.client_socket.setblocking(False)
-      #  size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
-       # json_data = self.client_socket.recv(size)
-        #self.client_socket.setblocking(True)
-        #return json.loads(json_data)
+    def _send_ack(self):
+        bit = 1
+        self.client_socket.sendall(bit.to_bytes(1, byteorder='big'))
 
     def _recieve_json(self):
-        # Receive the message size in blocking mode
         size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
-
-        # Switch to non-blocking mode for receiving message data
-        self.client_socket.setblocking(False)
-        received_data = b''
-        while len(received_data) < size:
-            chunk = self.client_socket.recv(min(size - len(received_data), 4096))
-            if not chunk:
-                # Socket was closed by the other end
-                return None
-            received_data += chunk
-        self.client_socket.setblocking(True)
-
-        # Parse the JSON data and return it
-        try:
-            return json.loads(received_data)
-        except json.JSONDecodeError:
-            # The data is not valid JSON, so discard it and return None
-            return None
+        json_data = self.client_socket.recv(size)
+        return json.loads(json_data)
 
     def disconnect(self):
         self.gstreamer_pipeline.terminate()
