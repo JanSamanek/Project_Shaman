@@ -61,6 +61,7 @@ class Server():
             mot_speed_1, mot_speed_2 = (turn_gain * offset, -turn_gain * offset) if offset is not None else (None, None)
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
+            display_motor_speed(img, mot_speed_1, mot_speed_2)
 
             if save_video:
                 out.write(img)

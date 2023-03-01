@@ -33,6 +33,7 @@ class PersonTracker:
             for to in self.to_dict.values():
                 to.disappeared_count += 1
                 to.centroid = None
+                to.box = None
                 # if person has disappeared more than the threshold is, delete them
                 if to.disappeared_count >= self.max_disappeared:
                     IDs_to_delete.append(to.ID)
@@ -100,7 +101,8 @@ class PersonTracker:
                     ID = IDs[row]
                     to = self.to_dict[ID]
                     to.disappeared_count += 1
-                    to.centroid = None                                                      # is this good??????????????????????
+                    to.centroid = None    
+                    to.box = None
 
                     if to.disappeared_count > self.max_disappeared:
                         self._deregister(ID)

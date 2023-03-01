@@ -44,7 +44,7 @@ class PoseDetector:
             else:
                 return False
         except IndexError:
-            print("missing hand or nose in video")
+            print("[WRN] Missing hand or nose in video")
 
     def detect_left_hand_above_nose(self):
         LEFT_HAND_NUM = 15
@@ -56,9 +56,8 @@ class PoseDetector:
                 return True
             else:
                 return False
-
         except IndexError:
-            print("missing hand or nose in video")
+            print("[WRN] Missing hand or nose in video")
 
     def detect_angle(self, point1, point2, point3):
 
@@ -68,7 +67,7 @@ class PoseDetector:
             position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
             position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
         except IndexError:
-            print("missing parameters to calculate angle")
+            print("[WRN] Missing parameters to calculate angle")
         else:
             # calculate angle
             angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
