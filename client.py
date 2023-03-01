@@ -32,7 +32,7 @@ class Client:
 
             if json_data is None:
                 continue
-            
+
             mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
             stop = json_data['stop']
 
@@ -64,7 +64,7 @@ class Client:
         #self.client_socket.setblocking(True)
         #return json.loads(json_data)
 
-    def _receive_json(self):
+    def _recieve_json(self):
         # Receive the message size in blocking mode
         size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
 

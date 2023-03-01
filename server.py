@@ -41,8 +41,6 @@ class Server():
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
-        ID = 0
-
         while cap.isOpened:
             success, img = cap.read()
             
@@ -50,11 +48,9 @@ class Server():
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
             
-            
             previous_time = display_fps(img, previous_time)
             json_data = {}
             
-
             if tracker is not None:
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
