@@ -4,7 +4,6 @@ import numpy as np
 import json
 from tracker import create_tracker
 from Utilities.display_functions import display_fps, display_motor_speed
-import datetime
 
 class Server():
     def __init__(self, server_port=8080, gstreamer_port=5000):
@@ -66,13 +65,6 @@ class Server():
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
             display_motor_speed(img, mot_speed_1, mot_speed_2)
-
-            json_data["ID"] = ID
-            now = datetime.datetime.now()
-            formatted_date = now.strftime("%B %d, %Y %I:%M:%S.%f %p")
-            json_data["time"] = formatted_date
-            print(ID,formatted_date, mot_speed_1, sep='   \n')
-            ID += 1
 
             if save_video:
                 out.write(img)

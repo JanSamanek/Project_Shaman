@@ -33,12 +33,6 @@ class Client:
             mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
             stop = json_data['stop']
 
-            dt_time = json_data['time']
-            ID = json_data["ID"]
-            now = datetime.datetime.now()
-            formatted_date = now.strftime("%B %d, %Y %I:%M:%S.%f %p")
-            print(ID, dt_time, formatted_date, mot_speed_1, sep='   \n')
-
             if stop:
                 robot.stop()
                 print("[INF] Stopping robot and disconnecting from server ...")
