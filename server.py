@@ -4,7 +4,7 @@ import numpy as np
 import json
 from tracker import create_tracker
 from Utilities.display_functions import display_fps, display_motor_speed
-import time
+import datetime
 
 class Server():
     def __init__(self, server_port=8080, gstreamer_port=5000):
@@ -24,7 +24,7 @@ class Server():
 
     def communicate(self, save_video=False):
         tracker = None
-        turn_gain = 0.3
+        turn_gain = 0.5
         mot_speed_1, mot_speed_2 = None, None
         offset = None
         previous_time = 0
@@ -42,16 +42,20 @@ class Server():
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
+        ID = 0
+
         while cap.isOpened:
             success, img = cap.read()
             
             if not success:
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
-
+            
+            
             previous_time = display_fps(img, previous_time)
             json_data = {}
             
+
             if tracker is not None:
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
@@ -62,6 +66,13 @@ class Server():
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
             display_motor_speed(img, mot_speed_1, mot_speed_2)
+
+            json_data["ID"] = ID
+            now = datetime.datetime.now()
+            formatted_date = now.strftime("%B %d, %Y %I:%M:%S.%f %p")
+            json_data["time"] = formatted_date
+            print(ID,formatted_date, mot_speed_1, sep='   \n')
+            ID += 1
 
             if save_video:
                 out.write(img)
@@ -113,4 +124,4 @@ class Server():
 if __name__ == '__main__':
     server = Server()
     server.accept_new_client()
-    server.communicate()
+    server.communicate(save_video=True)

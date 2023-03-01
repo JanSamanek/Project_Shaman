@@ -2,6 +2,7 @@ import socket
 import cv2
 import subprocess
 import json
+import datetime
 import time
 from jetbot import Robot
 
@@ -31,7 +32,13 @@ class Client:
 
             mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
             stop = json_data['stop']
-            
+
+            dt_time = json_data['time']
+            ID = json_data["ID"]
+            now = datetime.datetime.now()
+            formatted_date = now.strftime("%B %d, %Y %I:%M:%S.%f %p")
+            print(ID, dt_time, formatted_date, mot_speed_1, sep='   \n')
+
             if stop:
                 robot.stop()
                 print("[INF] Stopping robot and disconnecting from server ...")
@@ -40,9 +47,9 @@ class Client:
             elif mot_speed_1 is not None and mot_speed_2 is not None:
                 robot.set_motors(mot_speed_1, mot_speed_2)
             elif mot_speed_1 is None or mot_speed_2 is None:
-                robot.stop()            # testing socket speed
+                robot.stop()            
             
-
+            # testing socket speed
             time_end = time.time()
             elapsed_time = time_end - time_start
             print("Time to send and recieve instructions: ", elapsed_time)
