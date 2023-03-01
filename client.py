@@ -26,17 +26,11 @@ class Client:
         robot = Robot()
 
         while True:
-        
+            time_start = time.time()
             json_data = self._recieve_json()
 
             mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
             stop = json_data['stop']
-            
-            # testing socket speed
-            time_start = json_data['time']
-            time_end = time.time()
-            elapsed_time = time_end - time_start
-            print("Time to send and recieve instructions: ", elapsed_time)
             
             if stop:
                 robot.stop()
@@ -47,6 +41,10 @@ class Client:
                 robot.set_motors(mot_speed_1, mot_speed_2)
             elif mot_speed_1 is None or mot_speed_2 is None:
                 robot.stop()
+
+            time_end = time.time()
+            elapsed_time = time_end - time_start
+            print("Time to send and recieve instructions: ", elapsed_time)
 
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image

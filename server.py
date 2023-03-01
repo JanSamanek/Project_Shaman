@@ -76,7 +76,6 @@ class Server():
             else:
                 json_data['stop'] = False
             
-            json_data['time'] = time.time()
             self._send_json(json_data)
 
             cv2.imshow("*** TRACKING ***", img)
