@@ -40,7 +40,8 @@ class Client:
             elif mot_speed_1 is not None and mot_speed_2 is not None:
                 robot.set_motors(mot_speed_1, mot_speed_2)
             elif mot_speed_1 is None or mot_speed_2 is None:
-                robot.stop()
+                robot.stop()            # testing socket speed
+            
 
             time_end = time.time()
             elapsed_time = time_end - time_start
