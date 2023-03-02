@@ -76,7 +76,6 @@ class Server():
                 json_data['stop'] = False
             
             self._send_json(json_data)
-            self._recieve_ack()
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
@@ -113,7 +112,43 @@ class Server():
         self.server_socket.close()
         print("[INF] Server shut down...")  
 
+import paho.mqtt.client as mqtt
+import subprocess
+
+    
+class Publisher():
+    def __init__(self, topic="jetbot_instructions", address="localhost", port=8080):
+        self.topic = topic
+        self.client = mqtt.Client()
+        self.broker = self._start_broker(port)
+        self._connect_to_broker(address, port)
+
+    @staticmethod
+    def _start_broker(port):
+        print("started broker")
+        return subprocess.Popen(f'mosquitto -p {port}', shell=True)
+
+    def _connect_to_broker(self, address, port):
+        self.client.connect(address, port)
+
+    def publish_data(self):
+
+        while True:
+            # Define the data to send
+            data = "Hello Jetson Nano"
+
+            # Publish the data to the MQTT topic
+            self.client.publish(self.topic, data)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+    def terminate(self):
+        self.broker.terminate()
+        self.client.disconnect()
+
 if __name__ == '__main__':
-    server = Server()
-    server.accept_new_client()
-    server.communicate(save_video=True)
+    publisher = Publisher()
+    publisher.publish_data()
+    publisher.terminate()
+ 

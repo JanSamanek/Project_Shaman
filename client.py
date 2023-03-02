@@ -2,9 +2,8 @@ import socket
 import cv2
 import subprocess
 import json
-import datetime
 import time
-from jetbot import Robot
+#from jetbot import Robot
 
 class Client:
     def __init__(self, host):   
@@ -47,8 +46,7 @@ class Client:
             time_end = time.time()
             elapsed_time = time_end - time_start
             print("Time to send and recieve instructions: ", elapsed_time)
-            self._send_ack()
-
+            
             
     def _send_img(self, img):
         result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
@@ -71,6 +69,26 @@ class Client:
         self.client_socket.close()
         print("[INF] Connection closed ...")
 
+import paho.mqtt.client as mqtt
+
+class Subscriber():
+    def __init__(self, address, topic="jetbot_instructions", port=8080):
+        self.client = mqtt.Client()
+        self.client.connect(address, port)
+        self.client.subscribe(topic)
+        self.client.on_message = self.on_message
+
+    def on_message(self, client, userdata, message):
+        #json_data = json.loads(message.payload.decode())
+        print(message.payload.decode())
+
+    def run(self):
+        self.client.loop_forever()
+    
+    def stop(self):
+        self.client.disconnect()
+
+
 if __name__ == '__main__':
     import argparse
 
@@ -78,8 +96,11 @@ if __name__ == '__main__':
     parser.add_argument("ip", help="IP adress for the client to connect to")
     args = parser.parse_args()
     
-    client = Client(args.ip)
-    client.start_streaming()
-    client.connect_to_server()
-    client.communicate()
+    subscriber = Subscriber(args.ip)
+    subscriber.run()
+
+    # client = Client(args.ip)
+    # client.start_streaming()
+    # client.connect_to_server()
+    # client.communicate()
     
