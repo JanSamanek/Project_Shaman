@@ -4,6 +4,7 @@ from tracker import create_tracker
 from Utilities.display_functions import display_fps, display_motor_speed
 import paho.mqtt.client as mqtt
 import subprocess
+import time
 
     
 class Publisher():
@@ -17,7 +18,9 @@ class Publisher():
     @staticmethod
     def _start_broker(port):
         print(f"[INF] Starting broker on port: {port} ...")
-        return subprocess.Popen(f'mosquitto -p {port}', shell=True)
+        mosquitto = subprocess.Popen(f'mosquitto -p {port}', shell=True)
+        time.sleep(2)
+        return mosquitto
 
     def _connect_to_broker(self, address, port):
         self.client.connect(address, port)

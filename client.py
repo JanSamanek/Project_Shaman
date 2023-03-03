@@ -11,6 +11,7 @@ class Subscriber():
         self.address = address
         self.robot = Robot()
         self.client = mqtt.Client()
+        self.start_gstreamer()
         self.connect_to_broker(address, port)
         self.client.subscribe(topic)
         self.client.on_message = self.control_robot
