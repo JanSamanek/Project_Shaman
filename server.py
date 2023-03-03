@@ -8,15 +8,16 @@ import time
 
     
 class Publisher():
-    def __init__(self, topic="jetbot_instructions", address="localhost", broker_port=8080, gstreamer_port=5000):
+    BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto
+    def __init__(self, topic="jetbot_instructions", broker_address="192.168.88.82", gstreamer_port=5000):
         self.topic = topic
         self.client = mqtt.Client()
         self.gstreamer_port=gstreamer_port
-        self.broker = Publisher._start_broker(broker_port)
-        self._connect_to_broker(address, broker_port)
+        self.broker = Publisher._start_broker(broker_address,Publisher.BROKER_PORT)
+        self._connect_to_broker(broker_address, Publisher.BROKER_PORT)
 
     @staticmethod
-    def _start_broker(port):
+    def _start_broker(address,port):
         print(f"[INF] Starting broker on port: {port} ...")
         mosquitto = subprocess.Popen(f'mosquitto -p {port}', shell=True)
         time.sleep(2)
@@ -27,7 +28,7 @@ class Publisher():
         print(f"[INF] Publisher connected to broker on address: {address}, port: {port} ...")
 
     def publish_data(self, save_video=False):
-        turn_gain = 0.5
+        TURN_GAIN = 0.35
         tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
         previous_time = 0
         
@@ -60,7 +61,7 @@ class Publisher():
                 center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
                 offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
 
-            mot_speed_1, mot_speed_2 = (turn_gain * offset, -turn_gain * offset) if offset is not None else (None, None)
+            mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
             display_motor_speed(img, mot_speed_1, mot_speed_2)
@@ -73,6 +74,7 @@ class Publisher():
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 json_data['stop'] = True
+                json_data = json.dumps(json_data)
                 self.client.publish(self.topic, json_data, qos=0)
                 break
             else:
