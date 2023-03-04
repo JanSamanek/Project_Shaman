@@ -53,7 +53,7 @@ if __name__ == '__main__':
 #mot_speed_1 = speed + turn_gain * center_x
 #mot_speed_2 = speed - turn_gain * center_x
 # max distance important!
-#sudo apt-get install mosquitto mosquitto-clients
+# sudo apt-get install mosquitto mosquitto-clients
 # pip install paho-mqtt
 
 # gst-launch-1.0 udpsrc port=5000 ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! autovideosink

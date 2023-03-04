@@ -27,8 +27,8 @@ class Publisher():
         self.client.connect(address, port)
         print(f"[INF] Publisher connected to broker on address: {address}, port: {port} ...")
 
-    def publish_data(self, save_video=False):
-        TURN_GAIN = 0.4
+    def send_instructions(self, save_video=False):
+        TURN_GAIN = 0.33
         tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
         previous_time = 0
         
@@ -74,23 +74,25 @@ class Publisher():
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 json_data['stop'] = True
-                json_data = json.dumps(json_data)
-                self.client.publish(self.topic, json_data, qos=0)
+                self._publish_json(json_data)
                 break
             else:
                 json_data['stop'] = False
             
-            json_data = json.dumps(json_data)
-            self.client.publish(self.topic, json_data, qos=0)
+            self._publish_json(json_data)
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
         
         cap.release()
         print("[INF] Gtsreamer pipeline closed ... ")
-        self.terminate()
+        self._terminate()
 
-    def terminate(self):
+    def _publish_json(self, json_data):
+        json_data = json.dumps(json_data)
+        self.client.publish(self.topic, json_data, qos=0)
+
+    def _terminate(self):
         self.client.disconnect()
         print("[INF] Disconected publisher from broker ...")
         self.broker.kill()
@@ -98,4 +100,4 @@ class Publisher():
 
 if __name__ == '__main__':
     publisher = Publisher()
-    publisher.publish_data(save_video=True) 
+    publisher.send_instructions(save_video=True) 

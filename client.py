@@ -5,9 +5,6 @@ import time
 from jetbot import Robot
 import paho.mqtt.client as mqtt
 
-last_time_call = time.time()
-
-
 class Subscriber():
     def __init__(self, address, topic="jetbot_instructions", port=8080):
         self.address = address
@@ -65,6 +62,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Starts client on Jetson Nano")
     parser.add_argument("ip", help="IP adress for the client to connect to")
     args = parser.parse_args()
-    
+
+    last_time_call = time.time()
     subscriber = Subscriber(args.ip)
     subscriber.run()
