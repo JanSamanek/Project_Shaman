@@ -93,11 +93,9 @@ class Publisher():
     def terminate(self):
         self.client.disconnect()
         print("[INF] Disconected publisher from broker ...")
-        self.broker.terminate()
+        self.broker.kill()
         print("[INF] Terminated broker ...")
 
 if __name__ == '__main__':
     publisher = Publisher()
-    publisher.publish_data()
-    publisher.terminate()
- 
+    publisher.publish_data(save_video=True) 
