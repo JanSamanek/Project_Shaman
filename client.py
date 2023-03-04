@@ -50,7 +50,7 @@ class Subscriber():
         self.client.loop_forever()
     
     def stop(self):
-        self.gstreamer_pipeline.kill()
+        self.gstreamer_pipeline.terminate()
         print("[INF] Gstreamer pipeline disconnected ...")
         self.client.disconnect()
         print("[INF] Subscriber disconnected from broker ...")
