@@ -1,51 +1,97 @@
 import cv2
 import numpy as np
+from Utilities.display_functions import display_fps
 
-def retrieve_odometry(frame1, frame2):
-    # Convert frames to grayscale
-    gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
-    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+def get_camera_shift(img1, img2):
+    # Convert the images to grayscale
+    gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
-    # Detect features in the first frame
-    features1 = cv2.goodFeaturesToTrack(gray1, maxCorners=100, qualityLevel=0.3, minDistance=7)
+    # Find the keypoints and descriptors with ORB
+    orb = cv2.ORB_create()
+    kp1, des1 = orb.detectAndCompute(gray1, None)
+    kp2, des2 = orb.detectAndCompute(gray2, None)
 
-    # Track features in the second frame using optical flow
-    features2, status, errors = cv2.calcOpticalFlowPyrLK(gray1, gray2, features1, None)
+    # Match the keypoints in the two images
+    bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+    matches = bf.match(des1, des2)
 
-    # Select only the features that were successfully tracked
-    good1 = features1[status == 1]
-    good2 = features2[status == 1]
+    # Find the homography matrix that maps img1 to img2
+    src_pts = np.float32([ kp1[m.queryIdx].pt for m in matches ]).reshape(-1,1,2)
+    dst_pts = np.float32([ kp2[m.trainIdx].pt for m in matches ]).reshape(-1,1,2)
+    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC)
 
-    # Compute the essential matrix from the corresponding feature points
-    E, mask = cv2.findEssentialMat(good1, good2, focal=1.0, pp=(0, 0))
+    # Extract the translation component of the homography matrix
+    dx = M[0, 2]
 
-    # Recover the relative camera motion from the essential matrix
-    _, rotation, translation, mask = cv2.recoverPose(E, good1, good2, focal=1.0, pp=(0, 0))
+    return dx
 
-    return rotation, translation
+def tracker_test():
+    # Read video file
+    cap = cv2.VideoCapture(0)
 
+    # Define the tracker
+    tracker = cv2.Tracker_create()
 
-cap = cv2.VideoCapture(0)
-if not cap.isOpened():
-    print("[INF] Failed to open pipeline ...")
-    exit()
-else:
-    success, img1 = cap.read()
+    # Read the first frame and select a point to track
+    ret, frame = cap.read()
+    bbox = cv2.selectROI(frame, False)
+    tracker.init(frame, bbox)
 
-# Load two consecutive frames
-while cap.isOpened():
-    success, img2 = cap.read()
+    # Loop through the video frames and track the selected point
+    while True:
+        # Read the next frame
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-    R, t = retrieve_odometry(img1, img2)
+        # Update the tracker with the current frame
+        success, bbox = tracker.update(frame)
 
-    # Print the rotation and translation vectors
-    print("Rotation vector:\n", R)
-    print("Translation vector:\n", t)
+        # If the tracking was successful, draw a rectangle around the tracked point
+        if success:
+            x, y, w, h = [int(i) for i in bbox]
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    cv2.imshow("image", img2)
-    if cv2.waitKey(100) & 0xFF == ord('q'):
-        break
-    img1 = img2
+        # Display the current frame
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) == ord('q'):
+            break
 
-cap.release()
-cv2.destroyAllWindows()
+    # Release the video capture and close the window
+    cap.release()
+    cv2.destroyAllWindows()
+
+def shift_test():
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("[INF] Failed to open pipeline ...")
+        exit()
+    else:
+        success, img1 = cap.read()
+
+    previous_time = 0
+
+    # Load two consecutive frames
+    while cap.isOpened():
+        success, img2 = cap.read()
+
+        dx = get_camera_shift(img1, img2)
+
+        previous_time = display_fps(img2, previous_time)
+        
+        if dx < 0:
+            print("LEFT")
+        else:
+            print("RIGHT")
+            
+        cv2.imshow("image", img2)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        img1 = img2
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+    tracker_test()
