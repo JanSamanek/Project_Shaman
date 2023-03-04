@@ -3,8 +3,10 @@ import subprocess
 import json
 import time
 from jetbot import Robot
-
 import paho.mqtt.client as mqtt
+
+last_time_call = time.time()
+
 
 class Subscriber():
     def __init__(self, address, topic="jetbot_instructions", port=8080):
@@ -27,11 +29,9 @@ class Subscriber():
         print(f"[INF] Subscriber connected to broker on address: {address}, port: {port} ...")
 
     def control_robot(self, client, userdata, message):
-        time_start = None if 'time_start' not in locals() else time_start
-        time_end = time.time()
-        if time_start is not None:
-            elapsed_time = time_end - time_start
-            print("Time to send and recieve instructions: ", elapsed_time)
+        global last_time_call
+        elapsed_time = time.time() - last_time_call
+        print("Time to send and recieve instructions: ", elapsed_time)
 
         json_data = json.loads(message.payload.decode())
 
@@ -47,7 +47,7 @@ class Subscriber():
         elif mot_speed_1 is None or mot_speed_2 is None:
             self.robot.stop()            
             
-        time_start = time.time()
+        last_time_call = time.time()
 
     def run(self):
         self.client.loop_forever()

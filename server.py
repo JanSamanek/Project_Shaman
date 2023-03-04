@@ -28,7 +28,7 @@ class Publisher():
         print(f"[INF] Publisher connected to broker on address: {address}, port: {port} ...")
 
     def publish_data(self, save_video=False):
-        TURN_GAIN = 0.35
+        TURN_GAIN = 0.4
         tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
         previous_time = 0
         
