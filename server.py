@@ -32,7 +32,7 @@ class Publisher():
         TURN_GAIN = 0.35
         previous_time = 0
         tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
-        pose_detector = PoseDetector()
+        #pose_detector = PoseDetector()
 
         pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
@@ -43,8 +43,9 @@ class Publisher():
         else:
             print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
+        if save_video:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
         while cap.isOpened:
             success, img = cap.read()
@@ -53,8 +54,10 @@ class Publisher():
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
             
+            json_data = {}
+
             if tracker is not None:
-                pose_img = img.copy()
+                #pose_img = img.copy()
 
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
@@ -75,7 +78,6 @@ class Publisher():
 
             mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
 
-            json_data = {'stop': False}
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
 
             previous_time = display_fps(img, previous_time)
@@ -91,7 +93,9 @@ class Publisher():
                 json_data['stop'] = True
                 self._publish_json(json_data)
                 break
-            
+            else:
+                json_data['stop'] = False
+                
             self._publish_json(json_data)
             
             cv2.imshow("*** TRACKING ***", img)
