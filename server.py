@@ -8,7 +8,7 @@ import time
 
     
 class Publisher():
-    BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto
+    BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto, i overwrote the default config file
     def __init__(self, topic="jetbot_instructions", broker_address="192.168.88.82", gstreamer_port=5000):
         self.topic = topic
         self.client = mqtt.Client()
@@ -95,7 +95,7 @@ class Publisher():
     def _terminate(self):
         self.client.disconnect()
         print("[INF] Disconected publisher from broker ...")
-        self.broker.terminateq()
+        self.broker.terminate()
         print("[INF] Terminated broker ...")
 
 if __name__ == '__main__':
