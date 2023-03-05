@@ -1,4 +1,3 @@
-import socket
 import subprocess
 import json
 import time

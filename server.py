@@ -10,7 +10,7 @@ from Pose.pose_detector import PoseDetector
     
 class Publisher():
     BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto, i overwrote the default config file
-    def __init__(self, topic="jetbot_instructions", broker_address="192.168.88.82", gstreamer_port=5000):
+    def __init__(self, topic="jetbot_instructions", broker_address="localhost", gstreamer_port=5000):
         self.topic = topic
         self.client = mqtt.Client()
         self.gstreamer_port=gstreamer_port
@@ -61,17 +61,17 @@ class Publisher():
                 center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
                 offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
 
-                to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
+                # to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
 
-                if to_box is not None:
-                    pose_img = pose_detector.get_landmarks(pose_img, box=to_box)
-                    # has to be called after get landmarks
-                    if pose_detector.detect_left_hand_above_nose() and pose_detector.detect_right_hand_above_nose():
-                        print("[INF] Both hands above nose detected")
-                    elif pose_detector.detect_left_hand_above_nose():
-                        print("[INF] Left hand gesture above nose detected")
-                    elif pose_detector.detect_right_hand_above_nose():
-                        print("[INF] Right hand gesture above nose detected")
+                # if to_box is not None:
+                #     pose_img = pose_detector.get_landmarks(pose_img, box=to_box)
+                #     # has to be called after get landmarks
+                #     if pose_detector.detect_left_hand_above_nose() and pose_detector.detect_right_hand_above_nose():
+                #         print("[INF] Both hands above nose detected")
+                #     elif pose_detector.detect_left_hand_above_nose():
+                #         print("[INF] Left hand gesture above nose detected")
+                #     elif pose_detector.detect_right_hand_above_nose():
+                #         print("[INF] Right hand gesture above nose detected")
 
             mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
 
@@ -113,4 +113,4 @@ class Publisher():
 
 if __name__ == '__main__':
     publisher = Publisher()
-    publisher.send_instructions(save_video=True) 
+    publisher.send_instructions() 
