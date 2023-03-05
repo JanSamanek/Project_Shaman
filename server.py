@@ -41,9 +41,9 @@ class Publisher():
         else:
             print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
-
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
+        if save_video:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
         while cap.isOpened:
             success, img = cap.read()
