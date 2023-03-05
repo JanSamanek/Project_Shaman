@@ -9,7 +9,7 @@ import time
     
 class Publisher():
     BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto, i overwrote the default config file
-    def __init__(self, topic="jetbot_instructions", broker_address="192.168.88.82", gstreamer_port=5000):
+    def __init__(self, topic="jetbot_instructions", broker_address="localhost", gstreamer_port=5000):
         self.topic = topic
         self.client = mqtt.Client()
         self.gstreamer_port=gstreamer_port
@@ -100,4 +100,4 @@ class Publisher():
 
 if __name__ == '__main__':
     publisher = Publisher()
-    publisher.send_instructions(save_video=True) 
+    publisher.send_instructions() 
