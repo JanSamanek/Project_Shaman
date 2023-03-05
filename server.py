@@ -1,79 +1,103 @@
-import socket
 import cv2
-import numpy as np
 import json
-from tracker import create_tracker, display_fps
-from Pose.pose_detector import PoseDetector
-import tensorflow.keras.backend as K
+from tracker import create_tracker
+from Utilities.display_functions import display_fps, display_motor_speed
+import paho.mqtt.client as mqtt
+import subprocess
+import time
 
-class Server():
-    def __init__(self):
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)   # Create a socket object
-        self._start_server()
-        
-    def _start_server(self, port=8080):
-        host = socket.gethostname()
-        ip_adress = socket.gethostbyname(host)
-        self.server_socket.bind((host, port))
-        print(f"[INF] Server listening on ip adress: {ip_adress}, port: {port}...")
-        self.server_socket.listen(5)
     
-    def accept_new_client(self):
-        # Wait for a client to connect
-        self.client_socket, address = self.server_socket.accept()
-        print(f"[INF] Client connected from ip adress: {address[0]}...")
+class Publisher():
+    BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto, i overwrote the default config file
+    def __init__(self, topic="jetbot_instructions", broker_address="192.168.88.82", gstreamer_port=5000):
+        self.topic = topic
+        self.client = mqtt.Client()
+        self.gstreamer_port=gstreamer_port
+        self.broker = Publisher._start_broker(broker_address,Publisher.BROKER_PORT)
+        self._connect_to_broker(broker_address, Publisher.BROKER_PORT)
 
-    def communicate(self):
-        tracker = None
-        pose_detector = None
-        
-        center = None
-        
+    @staticmethod
+    def _start_broker(address,port):
+        print(f"[INF] Starting broker on port: {port} ...")
+        mosquitto = subprocess.Popen(f'mosquitto -p {port}', shell=True)
+        time.sleep(2)
+        return mosquitto
+
+    def _connect_to_broker(self, address, port):
+        self.client.connect(address, port)
+        print(f"[INF] Publisher connected to broker on address: {address}, port: {port} ...")
+
+    def send_instructions(self, save_video=False):
+        TURN_GAIN = 0.35
+        tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
         previous_time = 0
         
-        while True:
-            img = self._recieve_img()
+        pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+        cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+
+        if not cap.isOpened():
+            print("[INF] Failed to open pipeline ...")
+            exit()
+        else:
+            print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
+
+
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
+
+        while cap.isOpened:
+            success, img = cap.read()
+            
+            if not success:
+                print("[ERROR] Failed to fetch image from pipeline ...")
+                continue
+            
             previous_time = display_fps(img, previous_time)
+            json_data = {}
             
             if tracker is not None:
-                img = tracker.track(img, reid_on=False)
+                img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
+                center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
+                offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
+
+            mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
+
+            json_data['mot_speed'] = mot_speed_1, mot_speed_2
+            display_motor_speed(img, mot_speed_1, mot_speed_2)
+
+            if save_video:
+                out.write(img)
                 
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
-                
-            json_data = {"center": center}
-            self._send_json(json_data)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                json_data['stop'] = True
+                self._publish_json(json_data)
+                break
+            else:
+                json_data['stop'] = False
+            
+            self._publish_json(json_data)
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
-            
-    def _send_json(self, json_data):
-        json_str = json.dumps(json_data)
-        data_bytes = json_str.encode()
         
-        self.client_socket.sendall(len(data_bytes).to_bytes(4, byteorder='big'))
-        self.client_socket.sendall(data_bytes)
-        
-    def _recieve_img(self):
-        size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
-        data = b''
-        while len(data) < size:
-            data += self.client_socket.recv(1024)
+        cap.release()
+        print("[INF] Gtsreamer pipeline closed ... ")
+        self._terminate()
 
-        # Decode image
-        image = np.frombuffer(data, np.uint8)          
-        image = cv2.imdecode(image, cv2.IMREAD_COLOR)  
-        
-        return image
-    
-    def close(self):
-        print("[INF] Shuting server down...")  
-        self.client_socket.close()
-        self.server_socket.close()
-        print("[INF] Server shut down...")  
+    def _publish_json(self, json_data):
+        json_data = json.dumps(json_data)
+        self.client.publish(self.topic, json_data, qos=0)
+
+    def _terminate(self):
+        self.client.disconnect()
+        print("[INF] Disconected publisher from broker ...")
+        self.broker.terminate()
+        print("[INF] Terminated broker ...")
 
 if __name__ == '__main__':
-    server = Server()
-    server.accept_new_client()
-    server.communicate()
+    publisher = Publisher()
+    publisher.send_instructions(save_video=True) 

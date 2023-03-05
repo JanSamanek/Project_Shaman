@@ -1,50 +1,68 @@
 import socket
-import cv2
-import numpy as np
+import subprocess
 import json
+import time
+from jetbot import Robot
+import paho.mqtt.client as mqtt
 
-class Client:
-    def __init__(self):   
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
+class Subscriber():
+    def __init__(self, address, topic="jetbot_instructions", port=8080):
+        self.address = address
+        self.robot = Robot()
+        self.client = mqtt.Client()
+        self.start_gstreamer()
+        self.connect_to_broker(address, port)
+        self.client.subscribe(topic)
+        self.client.on_message = self.control_robot
 
-    def connect_to_server(self, host='10.0.1.103', port=8080):
-        # Connect to the server
-        print(f"[INF] Trying to connect to ip adress: {host}, port: {port}...")
-        self.client_socket.connect((host, port))
-        print(f"[INF] Connected to ip adress: {host}, port: {port}...")
+    def start_gstreamer(self, gstreamer_port=5000):
+        print(f"[INF] Deploying Gstreamer pipeline ...")
+        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.address} port={gstreamer_port}"
+        self.gstreamer_pipeline = subprocess.Popen(pipeline, stdout=subprocess.PIPE, shell=True)
+        print(f"[INF] Streaming video to ip adress: {self.address}, port: {gstreamer_port} ...")
 
-    def communicate(self):
-        # Create a VideoCapture object
-        cap = cv2.VideoCapture('test.mp4')
+    def connect_to_broker(self, address, port):
+        self.client.connect(address, port)
+        print(f"[INF] Subscriber connected to broker on address: {address}, port: {port} ...")
 
-        while True:
-            # Read a frame from the video stream
-            ret, frame = cap.read()
-            self._send_img(frame)
+    def control_robot(self, client, userdata, message):
+        global last_time_call
+        elapsed_time = time.time() - last_time_call
+        print("Time to send and recieve instructions: ", elapsed_time)
+
+        json_data = json.loads(message.payload.decode())
+
+        mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
+        stop = json_data['stop']
+
+        if stop:
+            self.robot.stop()
+            print("[INF] Stopping robot and disconnecting from broker ...")
+            self.stop()
+        elif mot_speed_1 is not None and mot_speed_2 is not None:
+            self.robot.set_motors(mot_speed_1, mot_speed_2)
+        elif mot_speed_1 is None or mot_speed_2 is None:
+            self.robot.stop()            
             
-            json_data = self._recieve_json()
-            print(json_data)
-            
-    def _send_img(self, img):
-        result, image = cv2.imencode('.jpg', img)                           # Convert the frame to a JPEG image
-        data = image.tobytes()                                              # Convert the image to a byte array
-        self.client_socket.sendall(len(data).to_bytes(4, byteorder='big'))  # Send the image size
-        self.client_socket.sendall(data)                                    # Send the image data
-    
-    def _recieve_json(self):
-        size = int.from_bytes(self.client_socket.recv(4), byteorder='big')
-        json_data = b''
-        while len(json_data) < size:
-            json_data += self.client_socket.recv(1024)
-        return json.loads(json_data)
-    
-    def disconnect(self):
-        print("[INF] Client dissconnecting...")
-        self.client_socket.close()
-        print("[INF] Client disconnected...")
+        last_time_call = time.time()
 
+    def run(self):
+        self.client.loop_forever()
+    
+    def stop(self):
+        self.gstreamer_pipeline.terminate()
+        print("[INF] Gstreamer pipeline disconnected ...")
+        self.client.disconnect()
+        print("[INF] Subscriber disconnected from broker ...")
+        
+        
 if __name__ == '__main__':
-    client = Client()
-    client.connect_to_server()
-    client.communicate()
-    
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Starts client on Jetson Nano")
+    parser.add_argument("ip", help="IP adress for the client to connect to")
+    args = parser.parse_args()
+
+    last_time_call = time.time()
+    subscriber = Subscriber(args.ip)
+    subscriber.run()

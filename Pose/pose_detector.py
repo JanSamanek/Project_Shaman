@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
-import time
 import math
+from Utilities.display_functions import display_fps
 
 class PoseDetector:
 
@@ -12,8 +12,11 @@ class PoseDetector:
         self.pose = self.mp_pose.Pose(**kwargs)
         self.pose_landmarks = []
 
-    def get_landmarks(self, img, draw=True):
+    def get_landmarks(self, img, box=None, draw=True):
         lm_list = []
+
+        if box is not None:
+            img = PoseDetector.crop_im(img, *box)
 
         img.flags.writeable = False     # to enhance performance
         img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)       # cv2 reads the image in BGR but mp needs RGB as input
@@ -41,7 +44,7 @@ class PoseDetector:
             else:
                 return False
         except IndexError:
-            print("missing hand or nose in video")
+            print("[WRN] Missing hand or nose in video")
 
     def detect_left_hand_above_nose(self):
         LEFT_HAND_NUM = 15
@@ -53,11 +56,10 @@ class PoseDetector:
                 return True
             else:
                 return False
-
         except IndexError:
-            print("missing hand or nose in video")
+            print("[WRN] Missing hand or nose in video")
 
-    def detect_angle(self, img, point1, point2, point3):
+    def detect_angle(self, point1, point2, point3):
 
         # retrieve x, y position for each point
         try:
@@ -65,7 +67,7 @@ class PoseDetector:
             position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
             position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
         except IndexError:
-            print("missing parameters to calculate angle")
+            print("[WRN] Missing parameters to calculate angle")
         else:
             # calculate angle
             angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
@@ -101,7 +103,8 @@ def main():
         _, img = cap.read() 
 
         img = detector.get_landmarks(img)
-
+        previous_time = display_fps(img, previous_time)
+        
         cv2.imshow("Vision", img)
 
         # breaks out of the loop if q is pressed

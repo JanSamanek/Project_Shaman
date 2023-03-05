@@ -6,8 +6,8 @@ from TrackerBase.trackable_object import TrackableObject
 
 class PersonTracker:
 
-    def __init__(self, centre_to, max_disappeared=50, max_distance=80):
-        print("  [INF] Initalizing tracker base...")
+    def __init__(self, centre_to, max_disappeared=50, max_distance=120):
+        print("[INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
 
@@ -28,12 +28,18 @@ class PersonTracker:
     def update(self, boxes):
         # if no boxes are present
         if len(boxes) == 0:
+            IDs_to_delete = []
             # loop over the keys and mark persons as disappeared
             for to in self.to_dict.values():
                 to.disappeared_count += 1
+                to.centroid = None
+                to.box = None
                 # if person has disappeared more than the threshold is, delete them
                 if to.disappeared_count >= self.max_disappeared:
-                    self._deregister(to.ID)
+                    IDs_to_delete.append(to.ID)
+
+            for ID in IDs_to_delete:
+                self._deregister(ID)
 
             return self.to_dict
 
@@ -80,7 +86,8 @@ class PersonTracker:
 
                 # assign box
                 to.box = center_box_dict[tuple(new_center)]
-                to.centroid = to.apply_kf(new_center)
+                #to.centroid = to.apply_kf(new_center)
+                to.centroid = new_center
                 to.disappeared_count = 0
 
                 used_rows.add(row)
@@ -95,6 +102,8 @@ class PersonTracker:
                     ID = IDs[row]
                     to = self.to_dict[ID]
                     to.disappeared_count += 1
+                    to.centroid = None    
+                    to.box = None
 
                     if to.disappeared_count > self.max_disappeared:
                         self._deregister(ID)
