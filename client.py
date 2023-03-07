@@ -28,7 +28,7 @@ class Subscriber():
         global last_time_call
         elapsed_time = time.time() - last_time_call
         print("Time to send and recieve instructions: ", elapsed_time)
-        SPEED = 0.3
+        SPEED = 0.5
         json_data = json.loads(message.payload.decode())
 
         mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
