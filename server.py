@@ -32,7 +32,7 @@ class Publisher():
         TURN_GAIN = 0.35
         previous_time = 0
         tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
-        #pose_detector = PoseDetector()
+        pose_detector = PoseDetector()
 
         pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
@@ -55,26 +55,30 @@ class Publisher():
                 continue
             
             json_data = {}
-
+            json_data['right_hand_gest'] = False
+            
             if tracker is not None:
-                #pose_img = img.copy()
+                pose_img = img.copy()
 
                 img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
                 center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
                 offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
 
-                # to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
+                to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
 
-                # if to_box is not None:
-                #     pose_img = pose_detector.get_landmarks(pose_img, box=to_box)
-                #     # has to be called after get landmarks
-                #     if pose_detector.detect_left_hand_above_nose() and pose_detector.detect_right_hand_above_nose():
-                #         print("[INF] Both hands above nose detected")
-                #     elif pose_detector.detect_left_hand_above_nose():
-                #         print("[INF] Left hand gesture above nose detected")
-                #     elif pose_detector.detect_right_hand_above_nose():
-                #         print("[INF] Right hand gesture above nose detected")
+                if to_box is not None:
+                    pose_img = pose_detector.get_landmarks(pose_img, box=to_box)
+                    left_hand_up = pose_detector.detect_left_hand_above_nose()
+                    right_hand_up = pose_detector.detect_right_hand_above_nose()
+
+                    if left_hand_up and right_hand_up:
+                        print("[INF] Both hands above nose detected")
+                        json_data['right_hand_gest'] = True
+                    elif left_hand_up:
+                        print("[INF] Left hand gesture above nose detected")
+                    elif right_hand_up:
+                        print("[INF] Right hand gesture above nose detected")
 
             mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
 

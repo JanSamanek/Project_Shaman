@@ -33,11 +33,14 @@ class Subscriber():
 
         mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
         stop = json_data['stop']
+        right_hand_gest = json_data['right_hand_gest']
 
         if stop:
             print("[INF] Stopping robot and disconnecting from broker ...")
             self.robot.stop()
             self.stop()
+        elif right_hand_gest:
+            self.robot.foward(0.2)
         elif mot_speed_1 is not None and mot_speed_2 is not None:
             self.robot.set_motors(mot_speed_1, mot_speed_2)
         elif mot_speed_1 is None or mot_speed_2 is None:
