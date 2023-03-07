@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 import subprocess
 import time
 from Pose.pose_detector import PoseDetector
-
+from test2 import get_camera_shift
     
 class Publisher():
     BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto, i overwrote the default config file
@@ -41,6 +41,7 @@ class Publisher():
             print("[INF] Failed to open pipeline ...")
             exit()
         else:
+            success, img1 = cap.read()
             print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
         if save_video:
@@ -48,8 +49,15 @@ class Publisher():
             out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
         while cap.isOpened:
-            success, img = cap.read()
+            success, img2 = cap.read()
+            # dx = get_camera_shift(img1, img2)
+            # if dx < 0:
+            #     print("LEFT: ", dx)
+            # else:
+            #     print("RIGHT: ", dx)
             
+            # img1 = img2
+
             if not success:
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
@@ -58,12 +66,12 @@ class Publisher():
             json_data['right_hand_gest'] = False
             
             if tracker is not None:
-                pose_img = img.copy()
+                pose_img = img2.copy()
 
-                img = tracker.track(img)
+                img2 = tracker.track(img2)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
-                center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
-                offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
+                center = center if center is not None and img2.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
+                offset = (center[0] - img2.shape[1] / 2) / (img2.shape[1] / 2) if center is not None else None
 
                 to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
 
@@ -85,14 +93,14 @@ class Publisher():
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
 
-            previous_time = display_fps(img, previous_time)
-            display_motor_speed(img, mot_speed_1, mot_speed_2)
+            previous_time = display_fps(img2, previous_time)
+            display_motor_speed(img2, mot_speed_1, mot_speed_2)
 
             if save_video:
-                out.write(img)
+                out.write(img2)
                 
             if cv2.waitKey(1) & 0xFF == ord('s'):
-                tracker = create_tracker(img)
+                tracker = create_tracker(img2)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 json_data['stop'] = True
@@ -103,7 +111,7 @@ class Publisher():
                 
             self._publish_json(json_data)
             
-            cv2.imshow("*** TRACKING ***", img)
+            cv2.imshow("*** TRACKING ***", img2)
             cv2.waitKey(1)
         
         cap.release()
