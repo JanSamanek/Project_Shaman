@@ -72,9 +72,10 @@ class Publisher():
                     left_hand_up = pose_detector.detect_left_hand_above_nose()
                     right_hand_up = pose_detector.detect_right_hand_above_nose()
 
+                    json_data['right_hand_gest'] = right_hand_up
+                    
                     if left_hand_up and right_hand_up:
                         print("[INF] Both hands above nose detected")
-                        json_data['right_hand_gest'] = True
                     elif left_hand_up:
                         print("[INF] Left hand gesture above nose detected")
                     elif right_hand_up:
