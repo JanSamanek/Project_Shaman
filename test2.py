@@ -94,4 +94,4 @@ def shift_test():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    tracker_test()
+    shift_test()
