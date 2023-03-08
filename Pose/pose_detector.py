@@ -4,6 +4,17 @@ import math
 from Utilities.display_functions import display_fps
 
 class PoseDetector:
+    LEFT_HAND = 19
+    LEFT_SHOULDER = 11
+    LEFT_HIP = 23
+    LEFT_ELBOW = 13
+    RIGHT_HAND = 20
+    RIGHT_SHOULDER = 12
+    RIGHT_HIP = 24
+    RIGHT_ELBOW = 14
+    NOSE = 0
+    LM_X = 1
+    LM_Y = 2
 
     def __init__(self, **kwargs):
 
@@ -12,11 +23,11 @@ class PoseDetector:
         self.pose = self.mp_pose.Pose(**kwargs)
         self.pose_landmarks = []
 
-    def get_landmarks(self, img, box=None, draw=True):
+    def _get_landmarks(self, img, box=None, draw=True):
         lm_list = []
 
         if box is not None:
-            img = PoseDetector.crop_im(img, *box)
+            img = PoseDetector._crop_im(img, *box)
 
         img.flags.writeable = False     # to enhance performance
         img_RGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)       # cv2 reads the image in BGR but mp needs RGB as input
@@ -33,51 +44,79 @@ class PoseDetector:
             self.pose_landmarks = lm_list
         return img
 
-    def detect_right_hand_above_nose(self):
-        RIGHT_HAND_NUM = 16
-        NOSE_NUM = 0
-        LM_Y = 2
+    def _detect_right_hand_above_nose(self):
+        if self.pose_landmarks[PoseDetector.RIGHT_HAND][PoseDetector.LM_Y] < self.pose_landmarks[PoseDetector.NOSE][PoseDetector.LM_Y]:
+            return True
+        else:
+            return False
 
-        try:
-            if self.pose_landmarks[RIGHT_HAND_NUM][LM_Y] < self.pose_landmarks[NOSE_NUM][LM_Y]:
-                return True
-            else:
-                return False
-        except IndexError:
-            print("[WRN] Missing hand or nose in video")
+    def _detect_left_hand_above_nose(self):
+        if self.pose_landmarks[PoseDetector.LEFT_HAND][PoseDetector.LM_Y] < self.pose_landmarks[PoseDetector.NOSE][PoseDetector.LM_Y]:
+            return True
+        else:
+            return False
 
-    def detect_left_hand_above_nose(self):
-        LEFT_HAND_NUM = 15
-        NOSE_NUM = 0
-        LM_Y = 2
+    def _detect_right_hand_elavated(self):
+        if 100 >= self._detect_angle(PoseDetector.RIGHT_HIP, PoseDetector.RIGHT_SHOULDER, PoseDetector.RIGHT_ELBOW) >= 60\
+            and 250 >= self._detect_angle(PoseDetector.RIGHT_SHOULDER, PoseDetector.RIGHT_ELBOW, PoseDetector.RIGHT_HAND) >= 180:
+            return True
+        else:
+            return False
+    
+    def _detect_left_hand_elavated(self):
+        if 310 >= self._detect_angle(PoseDetector.LEFT_HIP, PoseDetector.LEFT_SHOULDER, PoseDetector.LEFT_ELBOW) >= 270\
+            and 180 >= self._detect_angle(PoseDetector.LEFT_SHOULDER, PoseDetector.LEFT_ELBOW, PoseDetector.LEFT_HAND) >= 110:
+            return True
+        else:
+            return False
+        
+    def _detect_crossed_hands(self):
+        if self.pose_landmarks[PoseDetector.RIGHT_HAND][PoseDetector.LM_X] > self.pose_landmarks[PoseDetector.LEFT_HAND][PoseDetector.LM_X]:
+            return True
+        return False
 
-        try:
-            if self.pose_landmarks[LEFT_HAND_NUM][LM_Y] < self.pose_landmarks[NOSE_NUM][LM_Y]:
-                return True
-            else:
-                return False
-        except IndexError:
-            print("[WRN] Missing hand or nose in video")
 
-    def detect_angle(self, point1, point2, point3):
+    def _detect_angle(self, point1, point2, point3):
 
         # retrieve x, y position for each point
-        try:
-            position_pix_x1, position_pix_y1 = self.pose_landmarks[point1][1:]
-            position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
-            position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
-        except IndexError:
-            print("[WRN] Missing parameters to calculate angle")
-        else:
-            # calculate angle
-            angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
-                                 - math.atan2(position_pix_y1 - position_pix_y2, position_pix_x1 - position_pix_x2))
-            if angle < 0:
-                angle += 360
-            return angle
+        position_pix_x1, position_pix_y1 = self.pose_landmarks[point1][1:]
+        position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
+        position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
+
+        # calculate angle
+        angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
+                                - math.atan2(position_pix_y1 - position_pix_y2, position_pix_x1 - position_pix_x2))
+        angle = angle + 360 if angle < 0 else angle
+
+        return angle
   
+    def get_gestures(self, img, box=None):
+        self._get_landmarks(img, box)
+        gestures = {"both_up": False, "left_up" : False, "right_up" : False, "right_elevated" : False, "left_elevated" : False, "crossed" : False}
+        left_hand_up =  self._detect_left_hand_above_nose()
+        right_hand_up = self._detect_right_hand_above_nose()
+        left_hand_elevated = self._detect_left_hand_elavated()
+        right_hand_elevated = self._detect_right_hand_elavated()
+        crossed_hands = self._detect_crossed_hands()
+
+        if left_hand_up and right_hand_up:
+            if crossed_hands:
+                gestures["crossed"] = True
+            else:
+                gestures["both_up"] = True
+        elif left_hand_up:
+            gestures["left_up"] = True
+        elif right_hand_up:
+            gestures["right_up"] = True
+        elif right_hand_elevated:
+            gestures["right_elevated"] = True
+        elif left_hand_elevated:
+            gestures["left_elevated"] = True
+        
+        return gestures
+
     @staticmethod
-    def crop_im(img, start_x, start_y, end_x, end_y):
+    def _crop_im(img, start_x, start_y, end_x, end_y):
         # enlarge the crop
         new_start_y = int(start_y * 0.85)
         new_end_y = int(end_y * 1.1)
@@ -102,9 +141,24 @@ def main():
         # reading the image from video capture
         _, img = cap.read() 
 
-        img = detector.get_landmarks(img)
-        previous_time = display_fps(img, previous_time)
-        
+        previous_time = display_fps(img , previous_time)
+        gestures = detector.get_gestures(img)         
+
+        if gestures["both_up"]:
+            print("both up")
+        elif gestures["left_up"]:
+            print("left up")
+        elif gestures["right_up"]:
+            print("right_up")
+        elif gestures["right_elevated"]:
+            print("right_elevated")
+        elif gestures["left_elevated"]:
+            print("left_elevated")
+        elif gestures["crossed"]:
+            print("crossed")
+        else:
+            print("Nothing")
+
         cv2.imshow("Vision", img)
 
         # breaks out of the loop if q is pressed

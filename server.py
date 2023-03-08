@@ -76,9 +76,9 @@ class Publisher():
                 to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
 
                 if to_box is not None:
-                    pose_img = pose_detector.get_landmarks(pose_img, box=to_box)
-                    left_hand_up = pose_detector.detect_left_hand_above_nose()
-                    right_hand_up = pose_detector.detect_right_hand_above_nose()
+                    pose_img = pose_detector._get_landmarks(pose_img, box=to_box)
+                    left_hand_up = pose_detector._detect_left_hand_above_nose()
+                    right_hand_up = pose_detector._detect_right_hand_above_nose()
 
                     json_data['right_hand_gest'] = right_hand_up
                     
