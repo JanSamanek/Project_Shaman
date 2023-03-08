@@ -70,7 +70,7 @@ class PoseDetector:
         else:
             return False
         
-    def _detect_crossed_hands(self):
+    def detect_crossed_hands(self):
         if self.pose_landmarks[PoseDetector.RIGHT_HAND][PoseDetector.LM_X] > self.pose_landmarks[PoseDetector.LEFT_HAND][PoseDetector.LM_X]:
             return True
         return False
@@ -97,7 +97,7 @@ class PoseDetector:
         right_hand_up = self._detect_right_hand_above_nose()
         left_hand_elevated = self._detect_left_hand_elavated()
         right_hand_elevated = self._detect_right_hand_elavated()
-        crossed_hands = self._detect_crossed_hands()
+        crossed_hands = self.detect_crossed_hands()
 
         if left_hand_up and right_hand_up:
             if crossed_hands:

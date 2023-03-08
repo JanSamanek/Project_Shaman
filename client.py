@@ -28,19 +28,23 @@ class Subscriber():
         global last_time_call
         elapsed_time = time.time() - last_time_call
         print("Time to send and recieve instructions: ", elapsed_time)
+        
         SPEED = 0.15
         json_data = json.loads(message.payload.decode())
 
         mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
         stop = json_data['stop']
-        right_hand_gest = json_data['right_hand_gest']
+        right_up = json_data['right_up']
+        left_elevated = json_data['left_elevated']
 
         if stop:
             print("[INF] Stopping robot and disconnecting from broker ...")
             self.robot.stop()
             self.stop()
-        elif right_hand_gest:
+        elif right_up:
             self.robot.set_motors(SPEED, SPEED)
+        elif left_elevated:
+            self.robot.set_motors(-SPEED, -SPEED)
         elif mot_speed_1 is not None and mot_speed_2 is not None:
             self.robot.set_motors(mot_speed_1, mot_speed_2)
         elif mot_speed_1 is None or mot_speed_2 is None:

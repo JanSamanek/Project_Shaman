@@ -24,6 +24,12 @@ class Tracker():
         cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
         return image
 
+    def get_boxes(self, img):
+        return self.yolo.predict(img)
+    
+    def update_target(self, center_to):
+        self.pt = PersonTracker(center_to)
+        
     def track(self, img, draw_boxes=True, draw_id=True):
         boxes = self.yolo.predict(img)
         
@@ -50,7 +56,6 @@ def calculate_center(start_x, start_y, width, height):
     center_x = int((start_x + (start_x + width)) / 2.0)
     center_y = int((start_y + (start_y + height)) / 2.0)
     return center_x, center_y
-
 
 def create_tracker(img):
     cv.destroyAllWindows()

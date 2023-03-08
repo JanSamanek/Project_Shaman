@@ -1,6 +1,6 @@
 import cv2
 import json
-from tracker import create_tracker
+from tracker import create_tracker, Tracker, calculate_center
 from Utilities.display_functions import display_fps, display_motor_speed
 import paho.mqtt.client as mqtt
 import subprocess
@@ -18,7 +18,7 @@ class Publisher():
         self._connect_to_broker(broker_address, Publisher.BROKER_PORT)
 
     @staticmethod
-    def _start_broker(address,port):
+    def _start_broker(port):
         print(f"[INF] Starting broker on port: {port} ...")
         mosquitto = subprocess.Popen(f'mosquitto -p {port}', shell=True)
         time.sleep(2)
@@ -41,7 +41,6 @@ class Publisher():
             print("[INF] Failed to open pipeline ...")
             exit()
         else:
-            success, img1 = cap.read()
             print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
         if save_video:
@@ -49,58 +48,47 @@ class Publisher():
             out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
         while cap.isOpened:
-            success, img2 = cap.read()
-            # dx = get_camera_shift(img1, img2)
-            # if dx < 0:
-            #     print("LEFT: ", dx)
-            # else:
-            #     print("RIGHT: ", dx)
-            
-            # img1 = img2
+            success, img = cap.read()
 
             if not success:
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
             
             json_data = {}
-            json_data['right_hand_gest'] = False
             
             if tracker is not None:
-                pose_img = img2.copy()
+                pose_img = img.copy()
 
-                img2 = tracker.track(img2)
+                img = tracker.track(img)
                 center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
-                center = center if center is not None and img2.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
-                offset = (center[0] - img2.shape[1] / 2) / (img2.shape[1] / 2) if center is not None else None
+                center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
+                offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
 
                 to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
 
                 if to_box is not None:
-                    pose_img = pose_detector._get_landmarks(pose_img, box=to_box)
-                    left_hand_up = pose_detector._detect_left_hand_above_nose()
-                    right_hand_up = pose_detector._detect_right_hand_above_nose()
-
-                    json_data['right_hand_gest'] = right_hand_up
-                    
-                    if left_hand_up and right_hand_up:
-                        print("[INF] Both hands above nose detected")
-                    elif left_hand_up:
-                        print("[INF] Left hand gesture above nose detected")
-                    elif right_hand_up:
-                        print("[INF] Right hand gesture above nose detected")
+                    gestures = pose_detector.get_gestures(pose_img, to_box)
+                    json_data.update(gestures)
+                elif tracker.tracked_to is None:
+                    boxes = tracker.get_boxes()
+                    for box in boxes:
+                        gestures = pose_detector.get_gestures(pose_img, box)
+                        if gestures['crossed']:
+                            tracker = Tracker(calculate_center(*box))       # Should init only person tracker not yolo
+                            break
 
             mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
 
-            previous_time = display_fps(img2, previous_time)
-            display_motor_speed(img2, mot_speed_1, mot_speed_2)
+            previous_time = display_fps(img, previous_time)
+            display_motor_speed(img, mot_speed_1, mot_speed_2)
 
             if save_video:
-                out.write(img2)
+                out.write(img)
                 
             if cv2.waitKey(1) & 0xFF == ord('s'):
-                tracker = create_tracker(img2)
+                tracker = create_tracker(img)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 json_data['stop'] = True
@@ -111,7 +99,7 @@ class Publisher():
                 
             self._publish_json(json_data)
             
-            cv2.imshow("*** TRACKING ***", img2)
+            cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
         
         cap.release()
