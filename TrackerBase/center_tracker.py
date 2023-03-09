@@ -86,7 +86,7 @@ class PersonTracker:
 
                 # assign box
                 to.box = center_box_dict[tuple(new_center)]
-                #to.centroid = to.apply_kf(new_center)
+                to.apply_kf(new_center)
                 to.centroid = new_center
                 to.disappeared_count = 0
 
