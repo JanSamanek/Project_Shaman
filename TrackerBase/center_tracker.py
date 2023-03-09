@@ -6,14 +6,14 @@ from TrackerBase.trackable_object import TrackableObject
 
 class PersonTracker:
 
-    def __init__(self, centre_to, max_disappeared=50, max_distance=120):
+    def __init__(self, center_to, max_disappeared=50, max_distance=300):
         print("[INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
 
         self.nextID = 0
         self.to_dict = OrderedDict()
-        self._register(centre_to)
+        self._register(center_to)
 
     def _register(self, person_center):
         # assign new person center
@@ -86,7 +86,7 @@ class PersonTracker:
 
                 # assign box
                 to.box = center_box_dict[tuple(new_center)]
-                #to.centroid = to.apply_kf(new_center)
+                to.apply_kf(new_center)
                 to.centroid = new_center
                 to.disappeared_count = 0
 

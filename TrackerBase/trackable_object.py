@@ -16,5 +16,5 @@ class TrackableObject:
         return self.predicted_centroid
 
     def apply_kf(self, meas):
-        self.centroid = self.kf.update(meas)
+        self.kf.update(meas)
         return self.centroid

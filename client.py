@@ -1,4 +1,3 @@
-import socket
 import subprocess
 import json
 import time
@@ -29,16 +28,26 @@ class Subscriber():
         global last_time_call
         elapsed_time = time.time() - last_time_call
         print("Time to send and recieve instructions: ", elapsed_time)
-
+        
+        SPEED = 0.15
         json_data = json.loads(message.payload.decode())
 
         mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
-        stop = json_data['stop']
 
-        if stop:
-            self.robot.stop()
+        # GESTURES
+        hands_crossed = json_data.get('crossed', False)
+        right_up = json_data.get('right_up', False)
+        left_elevated = json_data.get('left_elevated', False)
+
+
+        if hands_crossed:
             print("[INF] Stopping robot and disconnecting from broker ...")
+            self.robot.stop()
             self.stop()
+        elif right_up:
+            self.robot.set_motors(SPEED, SPEED)
+        elif left_elevated:
+            self.robot.set_motors(-SPEED, -SPEED)
         elif mot_speed_1 is not None and mot_speed_2 is not None:
             self.robot.set_motors(mot_speed_1, mot_speed_2)
         elif mot_speed_1 is None or mot_speed_2 is None:

@@ -26,42 +26,6 @@ def get_camera_shift(img1, img2):
 
     return dx
 
-def tracker_test():
-    # Read video file
-    cap = cv2.VideoCapture(0)
-
-    # Define the tracker
-    tracker = cv2.Tracker_create()
-
-    # Read the first frame and select a point to track
-    ret, frame = cap.read()
-    bbox = cv2.selectROI(frame, False)
-    tracker.init(frame, bbox)
-
-    # Loop through the video frames and track the selected point
-    while True:
-        # Read the next frame
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        # Update the tracker with the current frame
-        success, bbox = tracker.update(frame)
-
-        # If the tracking was successful, draw a rectangle around the tracked point
-        if success:
-            x, y, w, h = [int(i) for i in bbox]
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-        # Display the current frame
-        cv2.imshow('frame', frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
-
-    # Release the video capture and close the window
-    cap.release()
-    cv2.destroyAllWindows()
-
 def shift_test():
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
@@ -94,4 +58,4 @@ def shift_test():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    tracker_test()
+    shift_test()
