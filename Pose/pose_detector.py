@@ -123,8 +123,8 @@ class PoseDetector:
         # enlarge the crop
         new_start_y = int(start_y * 0.85)
         new_end_y = int(end_y * 1.1)
-        new_start_x = int(start_x * 0.98)
-        new_end_x = int(end_x * 1.02)
+        new_start_x = int(start_x * 0.92)
+        new_end_x = int(end_x * 1.08)
 
         if new_end_y > img.shape[0]:
             new_end_y = img.shape[0]
