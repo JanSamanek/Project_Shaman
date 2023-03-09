@@ -33,9 +33,9 @@ class Subscriber():
         json_data = json.loads(message.payload.decode())
 
         mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
-        stop = json_data['stop']
-        right_up = json_data['right_up']
-        left_elevated = json_data['left_elevated']
+        stop = json_data.get('stop', False)
+        right_up = json_data.get('right_up', False)
+        left_elevated = json_data.get('left_elevated', False)
 
         if stop:
             print("[INF] Stopping robot and disconnecting from broker ...")

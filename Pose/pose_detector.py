@@ -92,7 +92,7 @@ class PoseDetector:
   
     def get_gestures(self, img, box=None):
         self._get_landmarks(img, box)
-        gestures = {"both_up": False, "left_up" : False, "right_up" : False, "right_elevated" : False, "left_elevated" : False, "crossed" : False}
+        gestures = {}
         left_hand_up =  self._detect_left_hand_above_nose()
         right_hand_up = self._detect_right_hand_above_nose()
         left_hand_elevated = self._detect_left_hand_elavated()
@@ -144,17 +144,17 @@ def main():
         previous_time = display_fps(img , previous_time)
         gestures = detector.get_gestures(img)         
 
-        if gestures["both_up"]:
+        if gestures.get("both_up", False):
             print("both up")
-        elif gestures["left_up"]:
+        elif gestures.get("left_up", False):
             print("left up")
-        elif gestures["right_up"]:
+        elif gestures.get("right_up", False):
             print("right_up")
-        elif gestures["right_elevated"]:
+        elif gestures.get("right_elevated", False):
             print("right_elevated")
-        elif gestures["left_elevated"]:
+        elif gestures.get("left_elevated", False):
             print("left_elevated")
-        elif gestures["crossed"]:
+        elif gestures.get("crossed", False):
             print("crossed")
         else:
             print("Nothing")

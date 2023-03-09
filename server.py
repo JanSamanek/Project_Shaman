@@ -14,7 +14,7 @@ class Publisher():
         self.topic = topic
         self.client = mqtt.Client()
         self.gstreamer_port=gstreamer_port
-        self.broker = Publisher._start_broker(broker_address,Publisher.BROKER_PORT)
+        self.broker = Publisher._start_broker(Publisher.BROKER_PORT)
         self._connect_to_broker(broker_address, Publisher.BROKER_PORT)
 
     @staticmethod
@@ -94,8 +94,6 @@ class Publisher():
                 json_data['stop'] = True
                 self._publish_json(json_data)
                 break
-            else:
-                json_data['stop'] = False
                 
             self._publish_json(json_data)
             
