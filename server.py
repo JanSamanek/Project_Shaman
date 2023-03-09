@@ -55,7 +55,8 @@ class Publisher():
                 continue
             
             json_data = {}
-            
+            gestures = {}
+
             if tracker is not None:
                 pose_img = img.copy()
 
@@ -73,7 +74,7 @@ class Publisher():
                     boxes = tracker.get_boxes(img)
                     for box in boxes:
                         gestures = pose_detector.get_gestures(pose_img, box)
-                        if gestures.get("crossed", False):
+                        if gestures.get("both_up", False):
                             tracker.update_target(calculate_center(*box))
                             break
 
@@ -90,8 +91,7 @@ class Publisher():
             if cv2.waitKey(1) & 0xFF == ord('s'):
                 tracker = create_tracker(img)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                json_data['stop'] = True
+            if gestures.get("crossed", False):
                 self._publish_json(json_data)
                 break
                 
