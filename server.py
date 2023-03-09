@@ -61,11 +61,8 @@ class Publisher():
                 pose_img = img.copy()
 
                 img = tracker.track(img)
-                center = tracker.tracked_to.centroid if tracker.tracked_to is not None else None
-                center = center if center is not None and img.shape[1] > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
-                offset = (center[0] - img.shape[1] / 2) / (img.shape[1] / 2) if center is not None else None
-
-                to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
+                offset = tracker.get_to_offset_from_center(img.shape[1])
+                to_box = tracker.get_to_box()
 
                 if to_box is not None:
                     gestures = pose_detector.get_gestures(pose_img, to_box)

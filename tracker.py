@@ -27,6 +27,15 @@ class Tracker():
     def get_boxes(self, img):
         return self.yolo.predict(img)
     
+    def get_to_offset_from_center(self, img_x):
+        center = self.tracked_to.centroid if self.tracked_to is not None else None
+        center = center if center is not None and img_x > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
+        offset = (center[0] - img_x / 2) / (img_x / 2) if center is not None else None
+        return offset
+    
+    def get_to_box(self):
+        return self.tracked_to.box if self.tracked_to is not None else None
+    
     def update_target(self, center_to):
         self.pt = PersonTracker(center_to)
         
