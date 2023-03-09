@@ -29,7 +29,7 @@ class Publisher():
         print(f"[INF] Publisher connected to broker on address: {address}, port: {port} ...")
 
     def send_instructions(self, save_video=False):
-        TURN_GAIN = 0.35
+        TURN_GAIN = 0.4
         previous_time = 0
         tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
         pose_detector = PoseDetector()
@@ -70,11 +70,11 @@ class Publisher():
                     gestures = pose_detector.get_gestures(pose_img, to_box)
                     json_data.update(gestures)
                 elif tracker.tracked_to is None:
-                    boxes = tracker.get_boxes()
+                    boxes = tracker.get_boxes(img)
                     for box in boxes:
                         gestures = pose_detector.get_gestures(pose_img, box)
-                        if gestures['crossed']:
-                            tracker = Tracker(calculate_center(*box))       # Should init only person tracker not yolo
+                        if gestures.get("crossed", False):
+                            tracker.update_target(calculate_center(*box))
                             break
 
             mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
