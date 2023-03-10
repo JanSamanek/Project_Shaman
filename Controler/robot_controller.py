@@ -11,7 +11,8 @@ class RobotController():
         instructions = {}
         pose_img = img.copy()
 
-        if self.tracker.tracked_to is None:
+        if self.tracker.pt is None:
+            self.instruction_img = img
             boxes = self.tracker.get_boxes(img)
             for box in boxes:
                 gestures = self.pose_detector.get_gestures(pose_img, box)
@@ -27,10 +28,12 @@ class RobotController():
             instructions.update(gestures)
 
             mot_speed_1, mot_speed_2 = self._get_motor_speed(offset)
-            instructions['mot_speed'] = mot_speed_1, mot_speed_2
+            instructions['mot_speed_one'] = mot_speed_1
+            instructions['mot_speed_two'] = mot_speed_2
+
         return instructions
 
-    def get_instructions_img(self):
+    def get_instruction_img(self):
         return self.instruction_img
     
     def _get_motor_speed(self, offset, saturation=0.1, turn_gain=0.3):

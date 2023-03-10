@@ -8,7 +8,7 @@ class Tracker():
     def __init__(self):
         print("[INF] Creating a new tracker...")
         self.yolo = Yolo()
-        self.tracked_to = None
+        self.pt = None
     
     @staticmethod
     def _draw_id(image, objectID, centroid, color):

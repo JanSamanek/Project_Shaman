@@ -1,6 +1,6 @@
 import cv2
 import json
-from Utilities.display import display_fps
+from Utilities.display import display_fps, display_motor_speed
 import paho.mqtt.client as mqtt
 import subprocess
 import time
@@ -55,12 +55,13 @@ class Publisher():
                 continue
             
             instructions = robot_controller.get_instructions(img)
-            instruction_img = robot_controller.get_instructions_img
-
-            previous_time = display_fps(instruction_img, previous_time)
+            img = robot_controller.get_instruction_img()
+            
+            display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
+            previous_time = display_fps(img, previous_time)
 
             if save_video:
-                out.write(instruction_img)
+                out.write(img)
 
             if instructions.get("crossed", False):
                 self._publish_json(instructions)
@@ -68,7 +69,7 @@ class Publisher():
                 
             self._publish_json(instructions)
             
-            cv2.imshow("*** TRACKING ***", instruction_img)
+            cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
         
         cap.release()
