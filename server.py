@@ -56,7 +56,7 @@ class Publisher():
                 print("[ERROR] Failed to fetch image from pipeline ...")
                 continue
             
-            json_data = {}
+            instructions = {}
             gestures = {}
 
             if tracker is not None:
@@ -68,18 +68,18 @@ class Publisher():
 
                 if to_box is not None:
                     gestures = pose_detector.get_gestures(pose_img, to_box)
-                    json_data.update(gestures)
+                    instructions.update(gestures)
                 elif tracker.tracked_to is None:
                     boxes = tracker.get_boxes(img)
                     for box in boxes:
                         gestures = pose_detector.get_gestures(pose_img, box)
-                        if gestures.get("right_elevated", False):
+                        if gestures.get("right_up", False):
                             tracker.update_target(calculate_center(*box))
                             break
             
             mot_speed_1, mot_speed_2 = get_motor_speed(offset)
 
-            json_data['mot_speed'] = mot_speed_1, mot_speed_2
+            instructions['mot_speed'] = mot_speed_1, mot_speed_2
 
             previous_time = display_fps(img, previous_time)
             display_motor_speed(img, mot_speed_1, mot_speed_2)
@@ -91,10 +91,10 @@ class Publisher():
                 tracker = create_tracker(img)
 
             if gestures.get("crossed", False):
-                self._publish_json(json_data)
+                self._publish_json(instructions)
                 break
                 
-            self._publish_json(json_data)
+            self._publish_json(instructions)
             
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
