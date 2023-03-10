@@ -1,14 +1,14 @@
 import cv2 as cv
 from TrackerBase.center_tracker import PersonTracker
-from Yolo.yolo_nn import Yolo
+from Detector.yolo_nn import Yolo
 from Utilities.display import display_fps
 
 
 class Tracker():
-    def __init__(self, center_to):
+    def __init__(self):
         print("[INF] Creating a new tracker...")
         self.yolo = Yolo()
-        self.pt = PersonTracker(center_to, max_distance=300)
+        self.tracked_to = None
     
     @staticmethod
     def _draw_id(image, objectID, centroid, color):
@@ -36,7 +36,7 @@ class Tracker():
     def get_to_box(self):
         return self.tracked_to.box if self.tracked_to is not None else None
     
-    def update_target(self, center_to):
+    def set_target(self, center_to):
         self.pt = PersonTracker(center_to)
         
     def track(self, img, draw_boxes=True, draw_id=True):
@@ -70,7 +70,8 @@ def create_tracker(img):
     cv.destroyAllWindows()
     to_box = cv.selectROI("Select object for tracking", img, fromCenter=False, showCrosshair=False)
     center = calculate_center(*to_box)
-    tracker = Tracker(center)
+    tracker = Tracker()
+    tracker.set_target(center)
     cv.destroyWindow("Select object for tracking")
     return tracker
 

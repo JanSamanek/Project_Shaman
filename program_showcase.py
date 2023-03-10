@@ -1,4 +1,4 @@
-from tracker import create_tracker
+from Tracker.tracker import create_tracker
 from Pose.pose_detector import PoseDetector
 import cv2 as cv
 from Utilities.display import display_fps
