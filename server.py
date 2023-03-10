@@ -1,12 +1,12 @@
 import cv2
 import json
-from tracker import create_tracker, Tracker, calculate_center
-from Utilities.display_functions import display_fps, display_motor_speed
+from tracker import create_tracker, calculate_center
+from Utilities.display import display_fps, display_motor_speed
+from Utilities.jetbot_helper import get_motor_speed
 import paho.mqtt.client as mqtt
 import subprocess
 import time
 from Pose.pose_detector import PoseDetector
-from test2 import get_camera_shift
     
 class Publisher():
     BROKER_PORT=8080    # port for outside connections is defined in /etc/mosquitto, i overwrote the default config file
@@ -28,27 +28,29 @@ class Publisher():
         self.client.connect(address, port)
         print(f"[INF] Publisher connected to broker on address: {address}, port: {port} ...")
 
-    def send_instructions(self, save_video=False):
-        TURN_GAIN = 0.4
-        previous_time = 0
-        tracker, mot_speed_1, mot_speed_2, offset = None, None, None, None
-        pose_detector = PoseDetector()
-
+    def _connect_to_gst_pipeline(self):
         pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
-        cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
+        self.cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
-        if not cap.isOpened():
+        if not self.cap.isOpened():
             print("[INF] Failed to open pipeline ...")
             exit()
         else:
             print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
 
+    def send_instructions(self, save_video=False):
+        previous_time = 0
+        tracker, offset = None, None
+        pose_detector = PoseDetector()
+
+        self._connect_to_gst_pipeline()
+
         if save_video:
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
             out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
-        while cap.isOpened:
-            success, img = cap.read()
+        while self.cap.isOpened:
+            success, img = self.cap.read()
 
             if not success:
                 print("[ERROR] Failed to fetch image from pipeline ...")
@@ -74,8 +76,8 @@ class Publisher():
                         if gestures.get("right_elevated", False):
                             tracker.update_target(calculate_center(*box))
                             break
-
-            mot_speed_1, mot_speed_2 = (TURN_GAIN * offset, -TURN_GAIN * offset) if offset is not None else (None, None)
+            
+            mot_speed_1, mot_speed_2 = get_motor_speed(offset)
 
             json_data['mot_speed'] = mot_speed_1, mot_speed_2
 
@@ -97,7 +99,7 @@ class Publisher():
             cv2.imshow("*** TRACKING ***", img)
             cv2.waitKey(1)
         
-        cap.release()
+        self.cap.release()
         print("[INF] Gtsreamer pipeline closed ... ")
         self._terminate()
 
@@ -113,4 +115,4 @@ class Publisher():
 
 if __name__ == '__main__':
     publisher = Publisher()
-    publisher.send_instructions() 
+    publisher.send_instructions(save_video=True) 

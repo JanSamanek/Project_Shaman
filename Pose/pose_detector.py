@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
-from Utilities.display_functions import display_fps
+from Utilities.display import display_fps
 
 class PoseDetector:
     LEFT_HAND = 19
@@ -93,6 +93,7 @@ class PoseDetector:
     def get_gestures(self, img, box=None):
         self._get_landmarks(img, box)
         gestures = {}
+        # can i use get instead of try?
         try:
             left_hand_up =  self._detect_left_hand_above_nose()
             right_hand_up = self._detect_right_hand_above_nose()
