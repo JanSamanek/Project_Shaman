@@ -36,14 +36,15 @@ class Subscriber():
 
         # GESTURES
         hands_crossed = json_data.get('crossed', False)
-        right_elevated = json_data.get('right_elevated', False)
+        right_up = json_data.get('right_up', False)
         left_elevated = json_data.get('left_elevated', False)
+
 
         if hands_crossed:
             print("[INF] Stopping robot and disconnecting from broker ...")
             self.robot.stop()
             self.stop()
-        elif right_elevated:
+        elif right_up:
             self.robot.set_motors(SPEED, SPEED)
         elif left_elevated:
             self.robot.set_motors(-SPEED, -SPEED)

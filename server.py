@@ -73,7 +73,7 @@ class Publisher():
                     boxes = tracker.get_boxes(img)
                     for box in boxes:
                         gestures = pose_detector.get_gestures(pose_img, box)
-                        if gestures.get("right_up", False):
+                        if gestures.get("right_elevated", False):
                             tracker.update_target(calculate_center(*box))
                             break
             
