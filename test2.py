@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from Utilities.display_functions import display_fps
+from Utilities.display import display_fps
 
 def get_camera_shift(img1, img2):
     # Convert the images to grayscale

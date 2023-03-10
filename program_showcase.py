@@ -1,7 +1,7 @@
 from tracker import create_tracker
 from Pose.pose_detector import PoseDetector
 import cv2 as cv
-from Utilities.display_functions import display_fps
+from Utilities.display import display_fps
 
 def main():
     cap = cv.VideoCapture(0)

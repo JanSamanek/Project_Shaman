@@ -1,7 +1,7 @@
 import cv2 as cv
 from TrackerBase.center_tracker import PersonTracker
 from Yolo.yolo_nn import Yolo
-from Utilities.display_functions import display_fps
+from Utilities.display import display_fps
 
 
 class Tracker():
