@@ -32,7 +32,7 @@ class Subscriber():
         SPEED = 0.15
         instructions = json.loads(message.payload.decode())
 
-        mot_speed_1, mot_speed_2 = instructions.get("mot_speed", None)
+        mot_speed_1, mot_speed_2 = instructions.get("mot_speed", (None, None))
 
         # GESTURES
         hands_crossed = instructions.get('crossed', False)
