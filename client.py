@@ -39,14 +39,11 @@ class Subscriber():
         hands_crossed = instructions.get('crossed', False)
         right_up = instructions.get('right_up', False)
         left_elevated = instructions.get('left_elevated', False)
-        left_up = instructions.get('left_up', False)
 
         if hands_crossed:
             print("[INF] Stopping robot and disconnecting from broker ...")
             self.robot.stop()
             self.stop()
-        elif left_up:
-            pass
         elif right_up:
             self.robot.set_motors(SPEED, SPEED)
         elif left_elevated:
