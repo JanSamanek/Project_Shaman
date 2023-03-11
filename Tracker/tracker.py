@@ -9,6 +9,8 @@ class Tracker():
         print("[INF] Creating a new tracker...")
         self.yolo = Yolo()
         self.pt = None
+        self.tracked_to = None
+        self.trackable_objects = None
     
     @staticmethod
     def _draw_id(image, objectID, centroid, color):
@@ -38,7 +40,8 @@ class Tracker():
     
     def set_target(self, center_to):
         self.pt = PersonTracker(center_to)
-        
+        self.tracked_to = self.pt.to_dict.get(0, None) if self.pt is not None else None
+
     def track(self, img, draw_boxes=True, draw_id=True):
         boxes = self.yolo.predict(img)
         
