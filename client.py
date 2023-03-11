@@ -30,20 +30,23 @@ class Subscriber():
         print("Time to send and recieve instructions: ", elapsed_time)
         
         SPEED = 0.15
-        json_data = json.loads(message.payload.decode())
+        instructions = json.loads(message.payload.decode())
 
-        mot_speed_1, mot_speed_2 = json_data['mot_speed'] 
+        mot_speed_1 = instructions.get("mot_speed_one", None)
+        mot_speed_2 = instructions.get("mot_speed_two", None)
 
         # GESTURES
-        hands_crossed = json_data.get('crossed', False)
-        right_up = json_data.get('right_up', False)
-        left_elevated = json_data.get('left_elevated', False)
-
+        hands_crossed = instructions.get('crossed', False)
+        right_up = instructions.get('right_up', False)
+        left_elevated = instructions.get('left_elevated', False)
+        left_up = instructions.get('left_up', False)
 
         if hands_crossed:
             print("[INF] Stopping robot and disconnecting from broker ...")
             self.robot.stop()
             self.stop()
+        elif left_up:
+            pass
         elif right_up:
             self.robot.set_motors(SPEED, SPEED)
         elif left_elevated:
