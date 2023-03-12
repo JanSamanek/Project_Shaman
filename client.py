@@ -25,9 +25,9 @@ class Subscriber():
         print(f"[INF] Subscriber connected to broker on address: {address}, port: {port} ...")
 
     def control_robot(self, client, userdata, message):
-        global last_time_call
-        elapsed_time = time.time() - last_time_call
-        print("Time to send and recieve instructions: ", elapsed_time)
+        # global last_time_call
+        # elapsed_time = time.time() - last_time_call
+        # print("Time to send and recieve instructions: ", elapsed_time)
         
         SPEED = 0.15
         instructions = json.loads(message.payload.decode())
@@ -49,11 +49,13 @@ class Subscriber():
         elif left_elevated:
             self.robot.set_motors(-SPEED, -SPEED)
         elif mot_speed_1 is not None and mot_speed_2 is not None:
+            if mot_speed_1 > 0 and mot_speed_2 >0:
+                print(mot_speed_1, " : ", mot_speed_2)
             self.robot.set_motors(mot_speed_1, mot_speed_2)
         elif mot_speed_1 is None or mot_speed_2 is None:
             self.robot.stop()            
             
-        last_time_call = time.time()
+        # last_time_call = time.time()
 
     def run(self):
         self.client.loop_forever()
@@ -72,6 +74,6 @@ if __name__ == '__main__':
     parser.add_argument("ip", help="IP adress for the client to connect to")
     args = parser.parse_args()
 
-    last_time_call = time.time()
+    # last_time_call = time.time()
     subscriber = Subscriber(args.ip)
     subscriber.run()
