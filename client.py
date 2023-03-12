@@ -49,8 +49,6 @@ class Subscriber():
         elif left_elevated:
             self.robot.set_motors(-SPEED, -SPEED)
         elif mot_speed_1 is not None and mot_speed_2 is not None:
-            if mot_speed_1 > 0 and mot_speed_2 >0:
-                print(mot_speed_1, " : ", mot_speed_2)
             self.robot.set_motors(mot_speed_1, mot_speed_2)
         elif mot_speed_1 is None or mot_speed_2 is None:
             self.robot.stop()            
