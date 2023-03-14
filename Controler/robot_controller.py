@@ -29,7 +29,11 @@ class RobotController():
                 gestures = self.pose_detector.get_gestures(pose_img, to_box)
                 instructions.update(gestures)
 
-                mot_speed_1, mot_speed_2 = self._get_motor_speed(offset)
+                if gestures.get("left_up", False):
+                    mot_speed_1, mot_speed_2 = RobotController._get_motor_speed(offset, following=True, turn_gain=0.15, saturation=0.15)
+                else:
+                    mot_speed_1, mot_speed_2 = RobotController._get_motor_speed(offset, following=False, turn_gain=0.3, saturation=0.1)
+                    
                 instructions['mot_speed_one'] = mot_speed_1
                 instructions['mot_speed_two'] = mot_speed_2
 
@@ -38,11 +42,19 @@ class RobotController():
     def get_instruction_img(self):
         return self.instruction_img
     
-    def _get_motor_speed(self, offset, saturation=0.1, turn_gain=0.3):
+    @staticmethod
+    def _get_motor_speed(offset, following, turn_gain, saturation, speed=0.1):
         if offset is not None:
-            mot_speed_1, mot_speed_2 = (turn_gain * offset, -turn_gain * offset)
-            if abs(mot_speed_1) >= saturation or abs(mot_speed_2) >= saturation:
-                mot_speed_1, mot_speed_2 = _sign(offset)*saturation, -_sign(offset)*saturation
+            if following:
+                mot_speed_1, mot_speed_2 = (speed + turn_gain * offset, speed - turn_gain * offset)
+                if abs(mot_speed_1) >= saturation:
+                    mot_speed_1 = _sign(mot_speed_1)*saturation
+                if abs(mot_speed_2) >= saturation:
+                    mot_speed_2 = _sign(mot_speed_2)*saturation
+            else:
+                mot_speed_1, mot_speed_2 = (turn_gain * offset, -turn_gain * offset)
+                if abs(mot_speed_1) >= saturation or abs(mot_speed_2) >= saturation:
+                    mot_speed_1, mot_speed_2 = _sign(offset)*saturation, -_sign(offset)*saturation
         else:
             mot_speed_1, mot_speed_2 = None, None
         return mot_speed_1, mot_speed_2
