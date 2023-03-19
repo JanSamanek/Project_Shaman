@@ -43,7 +43,7 @@ class RobotController():
         return self.instruction_img
     
     @staticmethod
-    def _get_motor_speed(offset, following, turn_gain, saturation, speed=0.1):
+    def _get_motor_speed(offset, following, turn_gain, saturation, speed=0.15):
         if offset is not None:
             if following:
                 mot_speed_1, mot_speed_2 = (speed + turn_gain * offset, speed - turn_gain * offset)
