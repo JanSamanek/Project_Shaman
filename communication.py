@@ -24,21 +24,21 @@ class Client():
 
     def _connect_to_broker(self, address, port):
         self.client.connect(address, port)
-        print(f"[INF] Subscriber connected to broker on address: {address}, port: {port} ...")
+        print(f"[INF] Client connected to server on address: {address}, port: {port} ...")
 
     def run(self):
         self.client.loop_forever()
     
     def _stop(self):
         self.client.disconnect()
-        print("[INF] Subscriber disconnected from broker ...")
+        print("[INF] Client disconnected from broker ...")
         
 class MqttServer():
     def __init__(self):
         self.mosquitto_server = None
 
     def start_server(self):
-        print(f"[INF] Starting broker on port: {BROKER_PORT} ...")
+        print(f"[INF] Starting server on port: {BROKER_PORT} ...")
         self.mosquitto_server = subprocess.Popen(f'mosquitto -p {BROKER_PORT}', shell=True)
         time.sleep(2)
     
@@ -62,6 +62,7 @@ class Jetbot(Client):
 
     def control_robot(self, client, userdata, message):    
         SPEED = 0.15
+        print("R")
         instructions = json.loads(message.payload.decode())
 
         mot_speed_1 = instructions.get("mot_speed_one", None)
@@ -155,7 +156,7 @@ class InfoPublisher(Client):
 if __name__ == '__main__':
     import argparse
 
-    parser = argparse.ArgumentParser(description="Starts client on Jetson Nano")
+    parser = argparse.ArgumentParser()
     parser.add_argument("--ip_adress", "-ip", help="IP adress for jetbot to connect to", default=None)
     parser.add_argument("--device", "-d", help="Distinguishes which script to execute according to the device it is executed on")
     args = parser.parse_args()
