@@ -3,7 +3,7 @@ import numpy as np
 
 class KalmanFilter:
 
-    def __init__(self, init_pos, dt=0.15, u_x=0, u_y=0, std_acc=1, x_std_meas=0.4, y_std_meas=0.4):
+    def __init__(self, init_pos, dt=0.08, u_x=0, u_y=0, std_acc=1, x_std_meas=0.4, y_std_meas=0.4):
         """
         :param init_pos: initial position (x,y)
         :param dt: sampling time (time for 1 cycle)

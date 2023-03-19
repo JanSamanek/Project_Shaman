@@ -32,7 +32,8 @@ class Client():
     def _stop(self):
         self.client.disconnect()
         print("[INF] Client disconnected from broker ...")
-        
+
+
 class MqttServer():
     def __init__(self):
         self.mosquitto_server = None
@@ -45,6 +46,7 @@ class MqttServer():
     def stop_server(self):
         self.mosquitto_server.terminate()
         print("[INF] Server stopped ...")
+
 
 class Jetbot(Client):
     def __init__(self, address, topic="jetbot_instructions"):
@@ -62,7 +64,6 @@ class Jetbot(Client):
 
     def control_robot(self, client, userdata, message):    
         SPEED = 0.15
-        print("R")
         instructions = json.loads(message.payload.decode())
 
         mot_speed_1 = instructions.get("mot_speed_one", None)
@@ -96,7 +97,6 @@ class InfoPublisher(Client):
     def __init__(self, topic="jetbot_instructions", broker_address="localhost", gstreamer_port=5000):
         super().__init__(broker_address)
         self.topic = topic
-        self.client = mqtt.Client()
         self.gstreamer_port=gstreamer_port
 
     def _connect_to_gst_pipeline(self):
@@ -152,6 +152,7 @@ class InfoPublisher(Client):
     def _publish_json(self, json_data):
         json_data = json.dumps(json_data)
         self.client.publish(self.topic, json_data, qos=0)
+    
     
 if __name__ == '__main__':
     import argparse
