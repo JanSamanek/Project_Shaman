@@ -1,11 +1,17 @@
 import subprocess
 import json
 import time
-from jetbot import Robot
+try:
+    from jetbot import Robot
+except ModuleNotFoundError:
+    pass
 import paho.mqtt.client as mqtt
 import cv2
-from Utilities.display import display_fps, display_motor_speed
-from Controler.robot_controller import RobotController
+try:
+    from Controler.robot_controller import RobotController
+    from Utilities.display import display_fps, display_motor_speed
+except ModuleNotFoundError:
+    pass
 
 # BROKER_PORT - port for outside connections is defined in /etc/mosquitto on computer, i overwrote the default config file
 BROKER_PORT=8080 
@@ -150,7 +156,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="Starts client on Jetson Nano")
-    parser.add_argument("ip", help="IP adress for jetbot to connect to", default=None)
+    parser.add_argument("--ip_adress", "-ip", help="IP adress for jetbot to connect to", default=None)
     parser.add_argument("--device", "-d", help="Distinguishes which script to execute according to the device it is executed on")
     args = parser.parse_args()
 
