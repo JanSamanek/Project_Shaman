@@ -57,5 +57,22 @@ def shift_test():
     cap.release()
     cv2.destroyAllWindows()
 
+
 if __name__ == '__main__':
-    shift_test()
+    import paho.mqtt.client as mqtt
+    def on_message(client, userdata, message):
+        print(f"Received message '{message.payload.decode()}' on topic '{message.topic}'")
+
+    client = mqtt.Client()
+
+    # Set the callback function for incoming messages
+    client.on_message = on_message
+
+    # Connect to the MQTT broker
+    client.connect("localhost", 8080)
+
+    # Subscribe to the topic you want to check
+    client.subscribe("jetbot_instructions")
+
+    # Start the MQTT client loop to receive messages
+    client.loop_forever()
