@@ -4,25 +4,37 @@ import time
 from jetbot import Robot
 import paho.mqtt.client as mqtt
 
-class Subscriber():
-    def __init__(self, address, topic="jetbot_instructions", port=8080):
+class Client():
+    def __init__(self, address, port=8080):
         self.address = address
-        self.robot = Robot()
         self.client = mqtt.Client()
-        self.start_gstreamer()
         self.connect_to_broker(address, port)
-        self.client.subscribe(topic)
+
+    def connect_to_broker(self, address, port):
+        self.client.connect(address, port)
+        print(f"[INF] Subscriber connected to broker on address: {address}, port: {port} ...")
+
+    def run(self):
+        self.client.loop_forever()
+    
+    def stop(self):
+        self.client.disconnect()
+        print("[INF] Subscriber disconnected from broker ...")
+        
+
+class Jetbot(Client):
+    def __init__(self, address, topic="jetbot_instructions", port=8080):
+        super().__init__(address, port)
+        self.robot = Robot()
         self.client.on_message = self.control_robot
+        self.client.subscribe(topic)
+        self.start_gstreamer()
 
     def start_gstreamer(self, gstreamer_port=5000):
         print(f"[INF] Deploying Gstreamer pipeline ...")
         pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.address} port={gstreamer_port}"
         self.gstreamer_pipeline = subprocess.Popen(pipeline, stdout=subprocess.PIPE, shell=True)
         print(f"[INF] Streaming video to ip adress: {self.address}, port: {gstreamer_port} ...")
-
-    def connect_to_broker(self, address, port):
-        self.client.connect(address, port)
-        print(f"[INF] Subscriber connected to broker on address: {address}, port: {port} ...")
 
     def control_robot(self, client, userdata, message):
         # global last_time_call
@@ -55,23 +67,18 @@ class Subscriber():
             
         # last_time_call = time.time()
 
-    def run(self):
-        self.client.loop_forever()
-    
     def stop(self):
+        super().stop()
         self.gstreamer_pipeline.terminate()
         print("[INF] Gstreamer pipeline disconnected ...")
-        self.client.disconnect()
-        print("[INF] Subscriber disconnected from broker ...")
-        
-        
+
 if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="Starts client on Jetson Nano")
-    parser.add_argument("ip", help="IP adress for the client to connect to")
+    parser.add_argument("ip", help="IP adress for jetbot to connect to")
     args = parser.parse_args()
 
     # last_time_call = time.time()
-    subscriber = Subscriber(args.ip)
-    subscriber.run()
+    jetbot = Jetbot(args.ip)
+    jetbot.run()

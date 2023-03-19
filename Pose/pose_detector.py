@@ -40,7 +40,7 @@ class PoseDetector:
                 
         if self.results.pose_landmarks:
             for ID, lm in enumerate(self.results.pose_landmarks.landmark):
-                lm_list.append([ID, lm.x, lm.y])
+                lm_list.append([ID, lm.x, lm.y, lm.z, lm.visibility])
             self.pose_landmarks = lm_list
         return img
 
@@ -79,9 +79,9 @@ class PoseDetector:
     def _detect_angle(self, point1, point2, point3):
 
         # retrieve x, y position for each point
-        position_pix_x1, position_pix_y1 = self.pose_landmarks[point1][1:]
-        position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:]
-        position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:]
+        position_pix_x1, position_pix_y1 = self.pose_landmarks[point1][1:3]
+        position_pix_x2, position_pix_y2 = self.pose_landmarks[point2][1:3]
+        position_pix_x3, position_pix_y3 = self.pose_landmarks[point3][1:3]
 
         # calculate angle
         angle = math.degrees(math.atan2(position_pix_y3 - position_pix_y2, position_pix_x3 - position_pix_x2)
@@ -144,10 +144,10 @@ def main():
     while cap.isOpened():
         # reading the image from video capture
         _, img = cap.read() 
-
+        
         previous_time = display_fps(img , previous_time)
         gestures = detector.get_gestures(img)         
-
+        
         if gestures.get("both_up", False):
             print("both up")
         elif gestures.get("left_up", False):
