@@ -88,4 +88,4 @@ class Publisher():
 
 if __name__ == '__main__':
     publisher = Publisher()
-    publisher.send_instructions(save_video=True) 
+    publisher.send_instructions() 
