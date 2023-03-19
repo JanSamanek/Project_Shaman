@@ -160,13 +160,13 @@ if __name__ == '__main__':
     parser.add_argument("--device", "-d", help="Distinguishes which script to execute according to the device it is executed on")
     args = parser.parse_args()
 
-    server = MqttServer()
-    server.start_server()
 
     if args.device == "jetbot":
-        jetbot = Jetbot(args.ip)
+        jetbot = Jetbot(args.ip_adress)
         jetbot.run()
     elif args.device == "computer":
+        server = MqttServer()
+        server.start_server()
         publisher = InfoPublisher()
         publisher.send_instructions()
 
