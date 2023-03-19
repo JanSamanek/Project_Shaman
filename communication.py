@@ -153,7 +153,7 @@ class InfoPublisher(Client):
         json_data = json.dumps(json_data)
         self.client.publish(self.topic, json_data, qos=0)
     
-    
+
 if __name__ == '__main__':
     import argparse
 
@@ -171,5 +171,4 @@ if __name__ == '__main__':
         server.start_server()
         publisher = InfoPublisher()
         publisher.send_instructions()
-
-    server.stop_server()
+        server.stop_server()
