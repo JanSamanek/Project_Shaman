@@ -1,12 +1,15 @@
 import subprocess
 import json
 import time
-try:
-    from jetbot import Robot
-except ModuleNotFoundError:
-    pass
 import paho.mqtt.client as mqtt
 import cv2
+try:
+    from jetbot import Robot
+    import board
+    import busio
+    import adafruit_mpu6050
+except ModuleNotFoundError:
+    pass
 try:
     from Controler.robot_controller import RobotController
     from Utilities.display import display_fps, display_motor_speed
@@ -49,21 +52,28 @@ class MqttServer():
 
 
 class Jetbot(Client):
-    def __init__(self, address, topic="jetbot_instructions"):
+    def __init__(self, address, instruction_topic="jetbot_instructions", rotation_topic="sensor_data"):
         super().__init__(address)
         self.robot = Robot()
+        self.mpu = adafruit_mpu6050.MPU6050(busio.I2C(board.SCL_1, board.SDA_1))
+        self.rotation_topic = rotation_topic
         self.client.on_message = self.control_robot
-        self.client.subscribe(topic)
+        self.client.subscribe(instruction_topic)
         self.start_gstreamer()
 
-    def start_gstreamer(self, gstreamer_port=5000):
+    def start_gstreamer(self, gst_port=5000):
         print(f"[INF] Deploying Gstreamer pipeline ...")
-        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.address} port={gstreamer_port}"
+        pipeline = f"gst-launch-1.0 nvarguscamerasrc ! 'video/x-raw(memory:NVMM),width=1280, height=720, framerate=30/1, format=NV12' ! nvvidconv ! jpegenc ! rtpjpegpay ! udpsink host={self.address} port={gst_port}"
         self.gstreamer_pipeline = subprocess.Popen(pipeline, stdout=subprocess.PIPE, shell=True)
-        print(f"[INF] Streaming video to ip adress: {self.address}, port: {gstreamer_port} ...")
+        print(f"[INF] Streaming video to ip adress: {self.address}, port: {gst_port} ...")
+
+    def _send_gyro_data(self):
+        z_rot = self.mpu.gyro[2]
+        self.client.publish(self.rotation_topic, z_rot, qos=0)
 
     def control_robot(self, client, userdata, message):    
         SPEED = 0.15
+        self._send_gyro_data()
         instructions = json.loads(message.payload.decode())
 
         mot_speed_1 = instructions.get("mot_speed_one", None)
@@ -94,65 +104,67 @@ class Jetbot(Client):
 
 
 class InfoPublisher(Client):
-    def __init__(self, topic="jetbot_instructions", broker_address="localhost", gstreamer_port=5000):
+    def __init__(self, instruction_topic="jetbot_instructions", rotation_topic="sensor_data", broker_address="localhost"):
         super().__init__(broker_address)
-        self.topic = topic
-        self.gstreamer_port=gstreamer_port
+        self.instruction_topic = instruction_topic
+        self.client.subscribe(rotation_topic)
+        self.client.on_message = self.send_instructions
+        self.robot_controller = RobotController()
+        self.cap = self._connect_to_gst_pipeline(gst_port=5000)
 
-    def _connect_to_gst_pipeline(self):
-        pipeline = f"gst-launch-1.0 udpsrc port={self.gstreamer_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
+    def _connect_to_gst_pipeline(self, gst_port):
+        pipeline = f"gst-launch-1.0 udpsrc port={gst_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
 
         if not cap.isOpened():
             print("[INF] Failed to open pipeline ...")
             exit()
         else:
-            print(f"[INF] Connected to Gstreamer pipeline on port: {self.gstreamer_port}")
+            print(f"[INF] Connected to Gstreamer pipeline on port: {gst_port}")
             return cap
 
-    def send_instructions(self, save_video=False):
-        previous_time = 0
-        robot_controller = RobotController()
+    def send_instructions(self, client, userdata, message):
+        # previous_time = 0
+
+        # if save_video:
+        #     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        #     out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
+
+        z_rot = message.payload.decode()
+        success, img = self.cap.read()
+
+        if not success:
+            print("[ERROR] Failed to fetch image from pipeline ...")
+            exit()
         
-        cap = self._connect_to_gst_pipeline()
+        instructions = self.robot_controller.get_instructions(img)
+        img = self.robot_controller.get_instruction_img()
+        
+        display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
+        # previous_time = display_fps(img, previous_time)
 
-        if save_video:
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
+        # if save_video:
+        #     out.write(img)
 
-        while cap.isOpened:
-            success, img = cap.read()
-
-            if not success:
-                print("[ERROR] Failed to fetch image from pipeline ...")
-                continue
-            
-            instructions = robot_controller.get_instructions(img)
-            img = robot_controller.get_instruction_img()
-            
-            display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
-            previous_time = display_fps(img, previous_time)
-
-            if save_video:
-                out.write(img)
-
-            if instructions.get("crossed", False):
-                self._publish_json(instructions)
-                break
-                
+        if instructions.get("crossed", False):
             self._publish_json(instructions)
+            self._stop()
+            exit()
             
-            cv2.imshow("*** TRACKING ***", img)
-            cv2.waitKey(1)
+        self._publish_json(instructions)
         
-        cap.release()
-        print("[INF] Gtsreamer pipeline closed ... ")
-        self._stop()
+        cv2.imshow("*** TRACKING ***", img)
+        cv2.waitKey(1)
 
     def _publish_json(self, json_data):
         json_data = json.dumps(json_data)
-        self.client.publish(self.topic, json_data, qos=0)
-    
+        self.client.publish(self.instruction_topic, json_data, qos=0)
+
+    def _stop(self):
+        super()._stop()
+        self.cap.release()
+        print("[INF] Gtsreamer pipeline closed ... ")
+
 
 if __name__ == '__main__':
     import argparse
@@ -170,5 +182,5 @@ if __name__ == '__main__':
         server = MqttServer()
         server.start_server()
         publisher = InfoPublisher()
-        publisher.send_instructions()
+        publisher.send_instructions() ###############################
         server.stop_server()
