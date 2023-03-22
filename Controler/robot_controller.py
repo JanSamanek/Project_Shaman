@@ -57,6 +57,7 @@ class RobotController():
                     mot_speed_1, mot_speed_2 = _sign(offset)*saturation, -_sign(offset)*saturation
         else:
             mot_speed_1, mot_speed_2 = None, None
+            
         return mot_speed_1, mot_speed_2
 
 

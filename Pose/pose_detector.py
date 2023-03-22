@@ -17,7 +17,7 @@ class PoseDetector:
     LM_Y = 2
 
     def __init__(self, **kwargs):
-        print("[INF] Initiliazing person tracker ...")
+        print("[INF] Initiliazing pose detector ...")
         self.mp_draw = mp.solutions.drawing_utils
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(**kwargs)

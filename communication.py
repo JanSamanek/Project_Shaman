@@ -131,6 +131,11 @@ class InfoPublisher(Client):
         #     out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
 
         z_rot = message.payload.decode()
+        if float(z_rot) < 0.1:
+            print("LEFT")
+        elif float(z_rot) > 0.1:
+            print("RIGHT")
+
         success, img = self.cap.read()
 
         if not success:
@@ -160,6 +165,9 @@ class InfoPublisher(Client):
         json_data = json.dumps(json_data)
         self.client.publish(self.instruction_topic, json_data, qos=0)
 
+    def start_communication(self):
+        self.client.publish(self.instruction_topic, json.dumps({"data" : None}), qos=0)
+
     def _stop(self):
         super()._stop()
         self.cap.release()
@@ -178,9 +186,10 @@ if __name__ == '__main__':
     if args.device == "jetbot":
         jetbot = Jetbot(args.ip_adress)
         jetbot.run()
-    elif args.device == "computer":
+    else:
         server = MqttServer()
         server.start_server()
         publisher = InfoPublisher()
-        publisher.send_instructions() ###############################
+        publisher.start_communication()
+        publisher.run()
         server.stop_server()
