@@ -111,7 +111,7 @@ class InfoPublisher(Client):
         self.client.on_message = self.send_instructions
         self.robot_controller = RobotController()
         self.cap = self._connect_to_gst_pipeline(gst_port=5000)
-        self.video_saver = cv2.VideoWriter('simulation.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 20.0, (1280, 720))
+        self.video_saver = cv2.VideoWriter('testing.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 20.0, (1280, 720))
 
     def _connect_to_gst_pipeline(self, gst_port):
         pipeline = f"gst-launch-1.0 udpsrc port={gst_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
@@ -142,7 +142,7 @@ class InfoPublisher(Client):
         display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
         # previous_time = display_fps(img, previous_time)
 
-        # self.video_saver.write(img)
+        self.video_saver.write(img)
 
         if instructions.get("crossed", False):
             self._publish_json(instructions)

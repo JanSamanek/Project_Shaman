@@ -60,7 +60,7 @@ class PersonTracker:
         else:
             # grab the set of object IDs and corresponding centroids
             IDs = [to.ID for to in self.to_dict.values()]
-            predicted_centroids = [to.predict() for to in self.to_dict.values()]
+            predicted_centroids = [to.predict(camera_rotation) for to in self.to_dict.values()]
 
             D = dist.cdist(np.array(predicted_centroids), new_centers)
 
@@ -86,8 +86,7 @@ class PersonTracker:
 
                 # assign box
                 to.box = center_box_dict[tuple(new_center)]
-                to.apply_kf(new_center) #########
-                to.centroid = new_center
+                to.centroid = to.apply_kf(new_center)
                 to.disappeared_count = 0
 
                 used_rows.add(row)

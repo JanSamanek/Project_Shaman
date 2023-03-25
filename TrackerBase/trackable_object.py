@@ -11,10 +11,9 @@ class TrackableObject:
         self.box = None
         self.predicted_centroid = None
 
-    def predict(self):
-        self.predicted_centroid = self.kf.predict()
+    def predict(self, camera_rotation):
+        self.predicted_centroid = self.kf.predict(camera_rotation)
         return self.predicted_centroid
 
     def apply_kf(self, meas):
-        self.kf.update(meas)
-        return self.centroid
+        return self.kf.update(meas)
