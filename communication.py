@@ -147,7 +147,6 @@ class InfoPublisher(Client):
         if instructions.get("crossed", False):
             self._publish_json(instructions)
             self._stop()
-            exit()
             
         self._publish_json(instructions)
         
