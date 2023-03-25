@@ -111,6 +111,7 @@ class InfoPublisher(Client):
         self.client.on_message = self.send_instructions
         self.robot_controller = RobotController()
         self.cap = self._connect_to_gst_pipeline(gst_port=5000)
+        self.video_saver = cv2.VideoWriter('simulation.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 20.0, (1280, 720))
 
     def _connect_to_gst_pipeline(self, gst_port):
         pipeline = f"gst-launch-1.0 udpsrc port={gst_port} ! application/x-rtp, encoding-name=JPEG,payload=26 ! rtpjpegdepay ! jpegdec ! videoconvert ! appsink"
@@ -126,15 +127,8 @@ class InfoPublisher(Client):
     def send_instructions(self, client, userdata, message):
         # previous_time = 0
 
-        # if save_video:
-        #     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        #     out = cv2.VideoWriter('simulation.mp4', fourcc, 20.0, (1280, 720))
-
-        z_rot = message.payload.decode()
-        if float(z_rot) < 0.1:
-            print("LEFT")
-        elif float(z_rot) > 0.1:
-            print("RIGHT")
+        camera_rotation = message.payload.decode()
+        print(camera_rotation)
 
         success, img = self.cap.read()
 
@@ -142,14 +136,13 @@ class InfoPublisher(Client):
             print("[ERROR] Failed to fetch image from pipeline ...")
             exit()
         
-        instructions = self.robot_controller.get_instructions(img)
+        instructions = self.robot_controller.get_instructions(img, camera_rotation)
         img = self.robot_controller.get_instruction_img()
         
         display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
         # previous_time = display_fps(img, previous_time)
 
-        # if save_video:
-        #     out.write(img)
+        # self.video_saver.write(img)
 
         if instructions.get("crossed", False):
             self._publish_json(instructions)

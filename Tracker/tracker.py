@@ -42,10 +42,10 @@ class Tracker():
         self.pt = PersonTracker(center_to)
         self.tracked_to = self.pt.to_dict.get(0, None) if self.pt is not None else None
 
-    def track(self, img, draw_boxes=True, draw_id=True):
+    def track(self, img, camera_rotation=0, draw_boxes=True, draw_id=True):
         boxes = self.yolo.predict(img)
         
-        self.trackable_objects = self.pt.update(boxes)
+        self.trackable_objects = self.pt.update(boxes, camera_rotation)
         self.tracked_to = self.trackable_objects.get(0, None)
 
         if draw_id:

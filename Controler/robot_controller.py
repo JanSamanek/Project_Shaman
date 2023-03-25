@@ -7,7 +7,7 @@ class RobotController():
         self.pose_detector = PoseDetector()
         self.instruction_img = None
 
-    def get_instructions(self, img):
+    def get_instructions(self, img, camera_rotation=0):
         instructions = {}
         pose_img = img.copy()
 
@@ -20,7 +20,7 @@ class RobotController():
                     self.tracker.set_target(calculate_center(*box))
                     break
         else:
-            self.instruction_img = self.tracker.track(img)
+            self.instruction_img = self.tracker.track(img, camera_rotation)
 
             if self.tracker.tracked_to is not None:
                 offset = self.tracker.get_to_offset_from_center(img.shape[1])

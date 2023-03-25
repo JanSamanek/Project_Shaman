@@ -25,7 +25,7 @@ class PersonTracker:
         # delete person from register
         del self.to_dict[ID]
 
-    def update(self, boxes):
+    def update(self, boxes, camera_rotation=0):
         # if no boxes are present
         if len(boxes) == 0:
             IDs_to_delete = []
@@ -86,7 +86,7 @@ class PersonTracker:
 
                 # assign box
                 to.box = center_box_dict[tuple(new_center)]
-                to.apply_kf(new_center)
+                to.apply_kf(new_center) #########
                 to.centroid = new_center
                 to.disappeared_count = 0
 
