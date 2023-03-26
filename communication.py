@@ -127,7 +127,7 @@ class InfoPublisher(Client):
     def send_instructions(self, client, userdata, message):
         # previous_time = 0
 
-        camera_rotation = message.payload.decode()
+        camera_rotation = float(message.payload.decode())
         print(camera_rotation)
 
         success, img = self.cap.read()
