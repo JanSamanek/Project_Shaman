@@ -6,7 +6,7 @@ from TrackerBase.trackable_object import TrackableObject
 
 class PersonTracker:
 
-    def __init__(self, center_to, max_disappeared=50, max_distance=100):
+    def __init__(self, center_to, max_disappeared=50, max_distance=300):
         print("[INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
