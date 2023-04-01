@@ -1,5 +1,5 @@
 from Pose.pose_detector import PoseDetector
-from Tracker.tracker import Tracker, calculate_center
+from Tracker.tracker import Tracker
 
 class RobotController():
     def __init__(self):
@@ -60,6 +60,10 @@ class RobotController():
             
         return mot_speed_1, mot_speed_2
 
+def calculate_center(start_x, start_y, end_x , end_y):
+    center_x = int((start_x + end_x) / 2.0)
+    center_y = int((start_y + end_y) / 2.0)
+    return center_x, center_y
 
 def _sign(x):
     if x == 0:

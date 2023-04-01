@@ -31,7 +31,7 @@ class Tracker():
     
     def get_to_offset_from_center(self, img_x):
         center = self.tracked_to.centroid if self.tracked_to is not None else None
-        center = center if center is not None and img_x > center[0] > 0 else None        # should rewrite this to be boundaries, what about kalman?
+        center = center if center is not None and img_x > center[0] > 0 else None
         offset = (center[0] - img_x / 2) / (img_x / 2) if center is not None else None
         return offset
     

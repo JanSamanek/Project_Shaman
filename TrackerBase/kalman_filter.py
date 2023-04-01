@@ -16,7 +16,7 @@ class KalmanFilter:
         :param y_std_meas: standard deviation of the measurement in y-direction
         :param FoV: field of view of the camera used [°]
         """
-        #define field of view
+        #define field of view in radians
         self.FoV = (FoV/360)*2*np.pi
 
         # Define sampling time
