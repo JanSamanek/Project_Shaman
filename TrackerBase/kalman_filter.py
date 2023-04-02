@@ -35,7 +35,7 @@ class KalmanFilter:
                             [0, 0, 0, 1]])
         
         # Define the Control Input Matrix B
-        self.B = np.matrix([[(self.dt**2)/2, 0, self.dt*img_width/self.FoV],
+        self.B = np.matrix([[(self.dt**2)/2, 0, 1.8*self.dt*img_width/self.FoV],
                             [0, (self.dt**2)/2, 0], 
                             [self.dt, 0, 0],        ### u_z*R ?????
                             [0, self.dt, 0]])

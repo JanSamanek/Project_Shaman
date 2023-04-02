@@ -17,3 +17,8 @@ def display_motor_speed(img, motor_speed_one, motor_speed_two):
     text_two = "Motor TWO: " + str(motor_speed_two)
     cv.putText(img, text_one, (50, 80), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
     cv.putText(img, text_two, (50, 110), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
+
+
+def display_camera_rotation(img, camera_rotation):
+    text = 'camera shift: ' + str(int(camera_rotation)) + ' pixels'
+    cv.putText(img, text, (50, 140), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)

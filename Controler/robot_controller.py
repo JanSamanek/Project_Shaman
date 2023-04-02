@@ -30,9 +30,9 @@ class RobotController():
                 instructions.update(gestures)
 
                 if gestures.get("left_up", False):
-                    mot_speed_1, mot_speed_2 = RobotController._get_motor_speed(offset, following=True, turn_gain=0.15, saturation=0.15)
+                    mot_speed_1, mot_speed_2 = RobotController._get_motor_speed(offset, following=True, turn_gain=0.15, saturation=0.18)
                 else:
-                    mot_speed_1, mot_speed_2 = RobotController._get_motor_speed(offset, following=False, turn_gain=0.3, saturation=0.1)
+                    mot_speed_1, mot_speed_2 = RobotController._get_motor_speed(offset, following=False, turn_gain=0.3, saturation=0.15)
                     
                 instructions['mot_speed_one'] = mot_speed_1
                 instructions['mot_speed_two'] = mot_speed_2

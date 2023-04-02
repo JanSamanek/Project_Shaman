@@ -56,6 +56,9 @@ class Tracker():
                     img = Tracker._draw_id(img, to.ID, to.centroid, (61, 254, 96))
                 elif to.disappeared_count > 0 and to.predicted_centroid is not None:
                     img = Tracker._draw_id(img, to.ID, to.predicted_centroid, (253, 63, 28))
+                
+                if to.ID == 0 and to.predicted_centroid is not None:
+                    img = Tracker._draw_id(img, to.ID, to.predicted_centroid, (253, 63, 28))
 
         if draw_boxes:
             for box in boxes:

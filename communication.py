@@ -12,7 +12,7 @@ except ModuleNotFoundError:
     pass
 try:
     from Controler.robot_controller import RobotController
-    from Utilities.display import display_fps, display_motor_speed
+    from Utilities.display import display_fps, display_motor_speed, display_camera_rotation
 except ModuleNotFoundError:
     pass
 
@@ -125,10 +125,7 @@ class InfoPublisher(Client):
             return cap
 
     def send_instructions(self, client, userdata, message):
-        # previous_time = 0
-
         camera_rotation = float(message.payload.decode())
-        print(camera_rotation)
 
         success, img = self.cap.read()
 
@@ -139,8 +136,12 @@ class InfoPublisher(Client):
         instructions = self.robot_controller.get_instructions(img, camera_rotation)
         img = self.robot_controller.get_instruction_img()
         
+        display_camera_rotation(img, 1.8*camera_rotation*0.08*1024/((160*3.14*2)/360))
         display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
-        # previous_time = display_fps(img, previous_time)
+        if 'previous_time' not in locals():
+            previous_time = 0
+        else:
+            previous_time = display_fps(img, previous_time)
 
         self.video_saver.write(img)
 
