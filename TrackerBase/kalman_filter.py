@@ -3,7 +3,7 @@ import numpy as np
 
 class KalmanFilter:
 
-    def __init__(self, init_pos, dt=0.08, u_x=0, u_y=0, u_z=0, std_acc=1, x_std_meas=0.4, y_std_meas=0.4, FoV=160, img_width=1280):
+    def __init__(self, init_pos, dt=0.08, u_x=0, u_y=0, u_z=0, std_acc=3, x_std_meas=0.1, y_std_meas=0.1, FoV=160, img_width=1280):
         """
         :param init_pos: initial position (x,y)
         :param camera_rotation: the rotation of camera around the z axis
@@ -35,7 +35,7 @@ class KalmanFilter:
                             [0, 0, 0, 1]])
         
         # Define the Control Input Matrix B
-        self.B = np.matrix([[(self.dt**2)/2, 0, 1.8*self.dt*img_width/self.FoV],
+        self.B = np.matrix([[(self.dt**2)/2, 0, 5*self.dt*img_width/self.FoV],
                             [0, (self.dt**2)/2, 0], 
                             [self.dt, 0, 0],        ### u_z*R ?????
                             [0, self.dt, 0]])

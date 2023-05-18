@@ -42,7 +42,7 @@ class Tracker():
         self.pt = PersonTracker(center_to)
         self.tracked_to = self.pt.to_dict.get(0, None) if self.pt is not None else None
 
-    def track(self, img, camera_rotation=0, draw_boxes=True, draw_id=True):
+    def track(self, img, camera_rotation=0, draw_boxes=True, draw_id=True, debug=False):
         boxes = self.yolo.predict(img)
         
         self.trackable_objects = self.pt.update(boxes, camera_rotation)
@@ -56,9 +56,12 @@ class Tracker():
                     img = Tracker._draw_id(img, to.ID, to.centroid, (61, 254, 96))
                 elif to.disappeared_count > 0 and to.predicted_centroid is not None:
                     img = Tracker._draw_id(img, to.ID, to.predicted_centroid, (253, 63, 28))
-                
-                if to.ID == 0 and to.predicted_centroid is not None:
-                    img = Tracker._draw_id(img, to.ID, to.predicted_centroid, (253, 63, 28))
+            
+                if debug:
+                    if to.ID == 0 and to.predicted_centroid is not None:
+                        img = Tracker._draw_id(img, to.ID, to.predicted_centroid, (253, 63, 28))
+                    if to.ID == 0 and to.measured_centroid is not None:
+                        img = Tracker._draw_id(img, to.ID, to.measured_centroid, (0,0,0))
 
         if draw_boxes:
             for box in boxes:
@@ -82,7 +85,7 @@ def create_tracker(img):
     return tracker
 
 def main():
-    cap = cv.VideoCapture("test.mp4")
+    cap = cv.VideoCapture("/home/jan/Project_Shaman/test.mp4")
     previous_time = 0
     tracker = None
     

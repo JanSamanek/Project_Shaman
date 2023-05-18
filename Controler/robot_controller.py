@@ -1,11 +1,16 @@
 from Pose.pose_detector import PoseDetector
 from Tracker.tracker import Tracker
+from Utilities.graphs import plot_and_save_kalman_data
 
 class RobotController():
     def __init__(self):
         self.tracker = Tracker()
         self.pose_detector = PoseDetector()
         self.instruction_img = None
+
+        self.measured = []
+        self.predicted = []
+        self.kf_centroid = []
 
     def get_instructions(self, img, camera_rotation=0):
         instructions = {}
@@ -20,7 +25,7 @@ class RobotController():
                     self.tracker.set_target(calculate_center(*box))
                     break
         else:
-            self.instruction_img = self.tracker.track(img, camera_rotation)
+            self.instruction_img = self.tracker.track(img, camera_rotation, debug=True)
 
             if self.tracker.tracked_to is not None:
                 offset = self.tracker.get_to_offset_from_center(img.shape[1])
@@ -37,11 +42,24 @@ class RobotController():
                 instructions['mot_speed_one'] = mot_speed_1
                 instructions['mot_speed_two'] = mot_speed_2
 
+                self.collect_kalman_data(instructions)
+               
         return instructions
 
     def get_instruction_img(self):
         return self.instruction_img
     
+    def collect_kalman_data(self, instructions):
+        to = self.tracker.tracked_to
+        if to.measured_centroid is not None and to.centroid is not None and to.predicted_centroid is not None:
+            self.measured.append(self.tracker.tracked_to.measured_centroid) 
+            self.kf_centroid.append(self.tracker.tracked_to.centroid)
+            self.predicted.append(self.tracker.tracked_to.predicted_centroid)
+
+        if  instructions.get("crossed", False):
+            plot_and_save_kalman_data(self.measured, self.kf_centroid, self.predicted)
+
+
     @staticmethod
     def _get_motor_speed(offset, following, turn_gain, saturation, speed=0.15):
         if offset is not None:

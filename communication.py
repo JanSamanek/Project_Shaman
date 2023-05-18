@@ -136,9 +136,11 @@ class InfoPublisher(Client):
         instructions = self.robot_controller.get_instructions(img, camera_rotation)
         img = self.robot_controller.get_instruction_img()
         
-        display_camera_rotation(img, 1.8*camera_rotation*0.08*1024/((160*3.14*2)/360))
+        display_camera_rotation(img, 5*camera_rotation*0.08*1024/((160*3.14*2)/360))
         display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
-        if 'previous_time' not in locals():
+        
+        if 'previous_time' not in globals():
+            global previous_time
             previous_time = 0
         else:
             previous_time = display_fps(img, previous_time)

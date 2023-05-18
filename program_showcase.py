@@ -19,7 +19,7 @@ def main():
             to_box = tracker.tracked_to.box if tracker.tracked_to is not None else None
 
             if to_box is not None:
-                pose_img = pose_detector._get_landmarks(pose_img, box=to_box)
+                pose_img = pose_detector.get_landmarks(pose_img, box=to_box)
 
                 # has to be called after get landmarks
                 if pose_detector._detect_left_hand_above_nose() and pose_detector._detect_right_hand_above_nose():

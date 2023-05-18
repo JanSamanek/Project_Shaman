@@ -6,7 +6,7 @@ from TrackerBase.trackable_object import TrackableObject
 
 class PersonTracker:
 
-    def __init__(self, center_to, max_disappeared=50, max_distance=100):
+    def __init__(self, center_to, max_disappeared=50, max_distance=300):
         print("[INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
@@ -34,6 +34,7 @@ class PersonTracker:
                 to.disappeared_count += 1
                 to.centroid = None
                 to.box = None
+                to.measured_centroid = None
                 # if person has disappeared more than the threshold is, delete them
                 if to.disappeared_count >= self.max_disappeared:
                     IDs_to_delete.append(to.ID)
@@ -85,9 +86,15 @@ class PersonTracker:
                 new_center = new_centers[col]
 
                 # assign box
+                ################################################################
                 to.box = center_box_dict[tuple(new_center)]
-                to.centroid = to.apply_kf(new_center)
+                to.measured_centroid = new_center
                 to.disappeared_count = 0
+                
+                robot_pixel_movement = 5*camera_rotation*0.08*1024/((160*3.14*2)/360)
+                
+                to.centroid = to.apply_kf(new_center) if robot_pixel_movement < 10 else None
+                ##################################################################
 
                 used_rows.add(row)
                 used_cols.add(col)
@@ -102,6 +109,7 @@ class PersonTracker:
                     to = self.to_dict[ID]
                     to.disappeared_count += 1
                     to.centroid = None    
+                    to.measured_centroid = None
                     to.box = None
 
                     if to.disappeared_count > self.max_disappeared:

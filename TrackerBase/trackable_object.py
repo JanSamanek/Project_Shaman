@@ -10,7 +10,8 @@ class TrackableObject:
         self.disappeared_count = 0
         self.box = None
         self.predicted_centroid = None
-
+        self.measured_centroid = None
+        
     def predict(self, camera_rotation):
         self.predicted_centroid = self.kf.predict(camera_rotation)
         return self.predicted_centroid
