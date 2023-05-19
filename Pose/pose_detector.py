@@ -22,6 +22,7 @@ class PoseDetector:
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(**kwargs)
         self.pose_landmarks = []
+        self.crossed_hands_counter = 0
 
     def get_landmarks(self, img, box=None, draw=True):
         lm_list = []
@@ -74,8 +75,15 @@ class PoseDetector:
         
     def _detect_crossed_hands(self):
         if self.pose_landmarks[PoseDetector.RIGHT_HAND][PoseDetector.LM_X] > self.pose_landmarks[PoseDetector.LEFT_HAND][PoseDetector.LM_X]:
-            return True
-        return False
+            self.crossed_hands_counter += 1
+            if self.crossed_hands_counter > 3:
+                self.crossed_hands_counter = 0
+                return True
+            else:
+                return False
+        else:
+            self.crossed_hands_counter = 0
+            return False
 
 
     def _detect_angle(self, point1, point2, point3):

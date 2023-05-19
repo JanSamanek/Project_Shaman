@@ -6,7 +6,7 @@ from TrackerBase.trackable_object import TrackableObject
 
 class PersonTracker:
 
-    def __init__(self, center_to, max_disappeared=50, max_distance=300):
+    def __init__(self, center_to, max_disappeared=50, max_distance=100):
         print("[INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
@@ -91,9 +91,12 @@ class PersonTracker:
                 to.measured_centroid = new_center
                 to.disappeared_count = 0
                 
-                robot_pixel_movement = 5*camera_rotation*0.08*1024/((160*3.14*2)/360)
+                dt = 0.08
+                camera_width = 1024
+                FoV = 160
+                robot_pixel_movement = int(5*camera_rotation*dt*camera_width/((FoV*np.pi*2)/360))
                 
-                to.centroid = to.apply_kf(new_center) if robot_pixel_movement < 10 else None
+                to.centroid = to.apply_kf(new_center) if abs(robot_pixel_movement) < 10 else None
                 ##################################################################
 
                 used_rows.add(row)

@@ -42,7 +42,7 @@ class RobotController():
                 instructions['mot_speed_one'] = mot_speed_1
                 instructions['mot_speed_two'] = mot_speed_2
 
-                self.collect_kalman_data(instructions)
+                # self.collect_kalman_data(instructions)
                
         return instructions
 
