@@ -15,18 +15,28 @@ The communication.py file handles communication (sending instructions) between t
 
 In order to make the program work you have to install on the distant computer:
 * opencv with g-streamer support from source
-* mqtt, mediapipe, numpy -> ```pip install paho-mqtt, mediapipe, numpy```
-* yolov5 dependecies -> ``` git clone https://github.com/ultralytics/yolov5
+* mqtt, mediapipe, numpy:
+ 
+```pip install paho-mqtt, mediapipe, numpy```
 
-                            cd yolov5
+* yolov5 dependecies:
+
+ ``` git clone https://github.com/ultralytics/yolov5
+ 
+ cd yolov5
                             
-                            pip install -r requirements.txt```
+ pip install -r requirements.txt```
                             
  You have to change the config file of mqtt to enable outside connections.
                             
-You have to setup JetBot with a prebuild image -> https://jetbot.org/master/software_setup/sd_card.html:
-* the mpu6050 library -> ```pip3 install adafruit-blinka, adafruit-circuitpython-mpu6050```
-* mqtt -> ```sudo apt-get install mosquitto mosquitto-clients``` 
+You have to setup JetBot with a prebuild image -> https://jetbot.org/master/software_setup/sd_card.html.
+
+Next you need to install
+
+* the mpu6050 library:
+
+```pip3 install adafruit-blinka, adafruit-circuitpython-mpu6050```
+* mqtt ```sudo apt-get install mosquitto mosquitto-clients``` 
  
 Then you run the communication.py file on jetbot with the argument -d jetbot -ip ip_adress_to_connect_to: 
 
