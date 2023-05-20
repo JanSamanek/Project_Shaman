@@ -1,9 +1,23 @@
 import numpy as np
+import json
+
+# load the settings for camera and sampling time
+with open("settings.json") as json_file:
+    data = json.load(json_file)
+
+    # loadfield of view in radians
+    FoV = (data['FoV']/360)*2*np.pi
+
+    # load the width of the image
+    img_width = data['img_width']
+
+    # load sampling time
+    dt = data['dt']
 
 
 class KalmanFilter:
 
-    def __init__(self, init_pos, dt=0.08, u_x=0, u_y=0, u_z=0, std_acc=3, x_std_meas=0.1, y_std_meas=0.1, FoV=160, img_width=1280):
+    def __init__(self, init_pos, dt=0.08, u_x=0, u_y=0, u_z=0, std_acc=3, x_std_meas=0.1, y_std_meas=0.1):
         """
         :param init_pos: initial position (x,y)
         :param camera_rotation: the rotation of camera around the z axis
@@ -14,12 +28,8 @@ class KalmanFilter:
         :param std_acc: process noise magnitude
         :param x_std_meas: standard deviation of the measurement in x-direction
         :param y_std_meas: standard deviation of the measurement in y-direction
-        :param FoV: field of view of the camera used [°]
         """
-        #define field of view in radians
-        self.FoV = (FoV/360)*2*np.pi
-
-        # Define sampling time
+        #define sampling time
         self.dt = dt
 
         # Define the control input variables
@@ -35,7 +45,7 @@ class KalmanFilter:
                             [0, 0, 0, 1]])
         
         # Define the Control Input Matrix B
-        self.B = np.matrix([[(self.dt**2)/2, 0, 5*self.dt*img_width/self.FoV],
+        self.B = np.matrix([[(self.dt**2)/2, 0, 5*dt*img_width/FoV],
                             [0, (self.dt**2)/2, 0], 
                             [self.dt, 0, 0],        ### u_z*R ?????
                             [0, self.dt, 0]])

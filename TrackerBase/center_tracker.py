@@ -2,6 +2,7 @@ from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 from TrackerBase.trackable_object import TrackableObject
+import json
 
 
 class PersonTracker:
@@ -14,6 +15,12 @@ class PersonTracker:
         self.nextID = 0
         self.to_dict = OrderedDict()
         self._register(center_to)
+
+        with open("settings.json") as json_file:
+            data = json.load(json_file)
+            self.FoV = data['FoV']
+            self.dt = data['dt']
+            self.img_width = data['img_width']
 
     def _register(self, person_center):
         # assign new person center
@@ -91,10 +98,7 @@ class PersonTracker:
                 to.measured_centroid = new_center
                 to.disappeared_count = 0
                 
-                dt = 0.08
-                camera_width = 1024
-                FoV = 160
-                robot_pixel_movement = int(5*camera_rotation*dt*camera_width/((FoV*np.pi*2)/360))
+                robot_pixel_movement = int(5*camera_rotation*self.dt*self.img_width/((self.FoV*np.pi*2)/360))
                 
                 to.centroid = to.apply_kf(new_center) if abs(robot_pixel_movement) < 10 else None
                 ##################################################################

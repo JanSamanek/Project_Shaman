@@ -1,4 +1,5 @@
 import torch
+from Utilities.display import Utility_helper
 
 class Yolo:
 
@@ -26,15 +27,6 @@ import cv2 as cv
 import time
 
 
-def display_fps(img, previous_time):
-    # measuring and displaying fps
-    current_time = time.time()
-    fps = 1/(current_time - previous_time)
-    previous_time = current_time
-    cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
-    return previous_time
-
-
 def _draw_box(image, x_min, y_min, x_max, y_max, color):
     cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 5)
     return image
@@ -48,7 +40,7 @@ def video_detection():
     while cap.isOpened():
         _, img = cap.read()
             
-        previous_time = display_fps(img, previous_time)
+        previous_time = Utility_helper.display_fps(img, previous_time)
         boxes = yolo.predict(img)
         for box in boxes:
              _draw_box(img, *box, (255, 0, 0))
@@ -73,4 +65,4 @@ def img_prediction(img_path, save_path="yolo_showcase.jpg"):
 
 
 if __name__ == '__main__':
-    img_prediction("IMG_0107.JPG")
+    video_detection()

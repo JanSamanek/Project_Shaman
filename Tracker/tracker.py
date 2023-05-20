@@ -1,7 +1,7 @@
 import cv2 as cv
 from TrackerBase.center_tracker import PersonTracker
 from Detector.yolo_nn import Yolo
-from Utilities.display import display_fps
+from Utilities.display import Utility_helper
 
 
 class Tracker():
@@ -95,7 +95,7 @@ def main():
         if tracker is not None:
             img = tracker.track(img)
             
-        previous_time = display_fps(img, previous_time)
+        previous_time = Utility_helper.display_fps(img, previous_time)
         
         cv.imshow('detector', img)
 

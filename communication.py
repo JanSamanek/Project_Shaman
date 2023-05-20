@@ -12,7 +12,7 @@ except ModuleNotFoundError:
     pass
 try:
     from Controler.robot_controller import RobotController
-    from Utilities.display import display_fps, display_motor_speed, display_camera_rotation
+    from Utilities.display import Utility_helper
 except ModuleNotFoundError:
     pass
 
@@ -104,6 +104,7 @@ class Jetbot(Client):
 
 
 class InfoPublisher(Client):
+
     def __init__(self, instruction_topic="jetbot_instructions", rotation_topic="sensor_data", broker_address="localhost"):
         super().__init__(broker_address)
         self.instruction_topic = instruction_topic
@@ -136,14 +137,14 @@ class InfoPublisher(Client):
         instructions = self.robot_controller.get_instructions(img, camera_rotation)
         img = self.robot_controller.get_instruction_img()
         
-        display_camera_rotation(img, 5*camera_rotation*0.08*1024/((160*3.14*2)/360))
-        display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
+        Utility_helper.display_camera_rotation(img, 5*camera_rotation)
+        Utility_helper.display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
         
         if 'previous_time' not in globals():
             global previous_time
             previous_time = 0
         else:
-            previous_time = display_fps(img, previous_time)
+            previous_time = Utility_helper.display_fps(img, previous_time)
 
         self.video_saver.write(img)
 

@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
-from Utilities.display import display_fps
+from Utilities.display import Utility_helper
 
 class PoseDetector:
     LEFT_HAND = 19
@@ -155,7 +155,7 @@ def main():
         # reading the image from video capture
         _, img = cap.read() 
         
-        previous_time = display_fps(img , previous_time)
+        previous_time = Utility_helper.display_fps(img , previous_time)
         gestures = detector.get_gestures(img)         
         
         if gestures.get("both_up", False):
@@ -192,4 +192,4 @@ def pose_img_prediction(img_path, save_path="pose_showcase.jpg"):
 
 
 if __name__ == '__main__':
-    pose_img_prediction("pose_estimation.jpg")
+    main()
