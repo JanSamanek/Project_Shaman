@@ -22,7 +22,9 @@ In order to make the program work you have to install on the distant computer:
 * yolov5 dependecies:
 
  ```git clone https://github.com/ultralytics/yolov5```
+ 
  ```cd yolov5```                          
+ 
  ```pip install -r requirements.txt```
                             
  You have to change the config file of mqtt to enable outside connections.
