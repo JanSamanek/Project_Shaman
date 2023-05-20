@@ -36,7 +36,10 @@ Next you need to install
 * the mpu6050 library:
 
 ```pip3 install adafruit-blinka, adafruit-circuitpython-mpu6050```
-* mqtt ```sudo apt-get install mosquitto mosquitto-clients``` 
+
+* mqtt 
+ 
+```sudo apt-get install mosquitto mosquitto-clients``` 
  
 Then you run the communication.py file on jetbot with the argument -d jetbot -ip ip_adress_to_connect_to: 
 
