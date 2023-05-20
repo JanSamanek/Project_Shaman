@@ -14,7 +14,7 @@ The Controller folder contains a RobotController class which purpose is to calcu
 
 The communication.py file handles communication (sending instructions) between the robot and a distant computer.
 
-## Installation instructions
+## Install instructions
 In order to make the program work you have to install on the distant computer:
 * opencv with g-streamer support from source
 * mqtt, mediapipe, numpy:
