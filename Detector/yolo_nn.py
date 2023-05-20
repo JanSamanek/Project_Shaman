@@ -1,4 +1,5 @@
 import torch
+from Utilities.display import Utility_helper
 
 class Yolo:
 
@@ -20,24 +21,18 @@ class Yolo:
             boxes.append((x_min, y_min, x_max, y_max))
             
         return boxes
-    
-if __name__ == '__main__':
-    import cv2 as cv
-    import time
-    
-    def display_fps(img, previous_time):
-        # measuring and displaying fps
-        current_time = time.time()
-        fps = 1/(current_time - previous_time)
-        previous_time = current_time
-        cv.putText(img, str(int(fps)), (70, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
-        return previous_time
 
-    def _draw_box(image, x_min, y_min, x_max, y_max, color):
-        cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 2)
-        return image
-    
-    
+
+import cv2 as cv
+import time
+
+
+def _draw_box(image, x_min, y_min, x_max, y_max, color):
+    cv.rectangle(image, (x_min, y_min), (x_max, y_max), color, 5)
+    return image
+
+
+def video_detection():
     cap = cv.VideoCapture("/home/jan/Project_Shaman/test.mp4")
     previous_time = 0
     yolo = Yolo()
@@ -45,7 +40,7 @@ if __name__ == '__main__':
     while cap.isOpened():
         _, img = cap.read()
             
-        previous_time = display_fps(img, previous_time)
+        previous_time = Utility_helper.display_fps(img, previous_time)
         boxes = yolo.predict(img)
         for box in boxes:
              _draw_box(img, *box, (255, 0, 0))
@@ -57,3 +52,17 @@ if __name__ == '__main__':
 
     cap.release()
     cv.destroyAllWindows()
+
+
+def img_prediction(img_path, save_path="yolo_showcase.jpg"):
+    img = cv.imread(img_path)
+    yolo = Yolo()
+    boxes = yolo.predict(img)
+    for box in boxes:
+        _draw_box(img, *box, (255, 0, 0))
+    cv.imwrite(save_path, img)
+    return img
+
+
+if __name__ == '__main__':
+    video_detection()

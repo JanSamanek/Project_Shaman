@@ -2,11 +2,12 @@ from scipy.spatial import distance as dist
 from collections import OrderedDict
 import numpy as np
 from TrackerBase.trackable_object import TrackableObject
+import json
 
 
 class PersonTracker:
 
-    def __init__(self, center_to, max_disappeared=50, max_distance=300):
+    def __init__(self, center_to, max_disappeared=50, max_distance=100):
         print("[INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
@@ -14,6 +15,12 @@ class PersonTracker:
         self.nextID = 0
         self.to_dict = OrderedDict()
         self._register(center_to)
+
+        with open("settings.json") as json_file:
+            data = json.load(json_file)
+            self.FoV = data['FoV']
+            self.dt = data['dt']
+            self.img_width = data['img_width']
 
     def _register(self, person_center):
         # assign new person center
@@ -25,7 +32,7 @@ class PersonTracker:
         # delete person from register
         del self.to_dict[ID]
 
-    def update(self, boxes):
+    def update(self, boxes, camera_rotation=0):
         # if no boxes are present
         if len(boxes) == 0:
             IDs_to_delete = []
@@ -34,6 +41,7 @@ class PersonTracker:
                 to.disappeared_count += 1
                 to.centroid = None
                 to.box = None
+                to.measured_centroid = None
                 # if person has disappeared more than the threshold is, delete them
                 if to.disappeared_count >= self.max_disappeared:
                     IDs_to_delete.append(to.ID)
@@ -60,7 +68,7 @@ class PersonTracker:
         else:
             # grab the set of object IDs and corresponding centroids
             IDs = [to.ID for to in self.to_dict.values()]
-            predicted_centroids = [to.predict() for to in self.to_dict.values()]
+            predicted_centroids = [to.predict(camera_rotation) for to in self.to_dict.values()]
 
             D = dist.cdist(np.array(predicted_centroids), new_centers)
 
@@ -85,10 +93,15 @@ class PersonTracker:
                 new_center = new_centers[col]
 
                 # assign box
+                ################################################################
                 to.box = center_box_dict[tuple(new_center)]
-                to.apply_kf(new_center)
-                to.centroid = new_center
+                to.measured_centroid = new_center
                 to.disappeared_count = 0
+                
+                robot_pixel_movement = int(5*camera_rotation*self.dt*self.img_width/((self.FoV*np.pi*2)/360))
+                
+                to.centroid = to.apply_kf(new_center) if abs(robot_pixel_movement) < 10 else None
+                ##################################################################
 
                 used_rows.add(row)
                 used_cols.add(col)
@@ -103,6 +116,7 @@ class PersonTracker:
                     to = self.to_dict[ID]
                     to.disappeared_count += 1
                     to.centroid = None    
+                    to.measured_centroid = None
                     to.box = None
 
                     if to.disappeared_count > self.max_disappeared:

@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
-from Utilities.display import display_fps
+from Utilities.display import Utility_helper
 
 class PoseDetector:
     LEFT_HAND = 19
@@ -17,13 +17,14 @@ class PoseDetector:
     LM_Y = 2
 
     def __init__(self, **kwargs):
-        print("[INF] Initiliazing person tracker ...")
+        print("[INF] Initiliazing pose detector ...")
         self.mp_draw = mp.solutions.drawing_utils
         self.mp_pose = mp.solutions.pose
         self.pose = self.mp_pose.Pose(**kwargs)
         self.pose_landmarks = []
+        self.crossed_hands_counter = 0
 
-    def _get_landmarks(self, img, box=None, draw=True):
+    def get_landmarks(self, img, box=None, draw=True):
         lm_list = []
 
         if box is not None:
@@ -36,7 +37,9 @@ class PoseDetector:
 
         if self.results.pose_landmarks:
             if draw:
-                self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS)
+                self.mp_draw.draw_landmarks(img, self.results.pose_landmarks, self.mp_pose.POSE_CONNECTIONS,
+                                            self.mp_draw.DrawingSpec(color=(61, 254, 96), thickness=3, circle_radius=2),
+                                            self.mp_draw.DrawingSpec(color=(253, 63, 28), thickness=3, circle_radius=2))
                 
         if self.results.pose_landmarks:
             for ID, lm in enumerate(self.results.pose_landmarks.landmark):
@@ -70,10 +73,17 @@ class PoseDetector:
         else:
             return False
         
-    def detect_crossed_hands(self):
+    def _detect_crossed_hands(self):
         if self.pose_landmarks[PoseDetector.RIGHT_HAND][PoseDetector.LM_X] > self.pose_landmarks[PoseDetector.LEFT_HAND][PoseDetector.LM_X]:
-            return True
-        return False
+            self.crossed_hands_counter += 1
+            if self.crossed_hands_counter > 3:
+                self.crossed_hands_counter = 0
+                return True
+            else:
+                return False
+        else:
+            self.crossed_hands_counter = 0
+            return False
 
 
     def _detect_angle(self, point1, point2, point3):
@@ -91,7 +101,7 @@ class PoseDetector:
         return angle
   
     def get_gestures(self, img, box=None):
-        self._get_landmarks(img, box)
+        self.get_landmarks(img, box, draw=False)
         gestures = {}
         # can i use get instead of try?
         try:
@@ -99,7 +109,7 @@ class PoseDetector:
             right_hand_up = self._detect_right_hand_above_nose()
             left_hand_elevated = self._detect_left_hand_elavated()
             right_hand_elevated = self._detect_right_hand_elavated()
-            crossed_hands = self.detect_crossed_hands()
+            crossed_hands = self._detect_crossed_hands()
         except IndexError as e:
             print("[ERROR] Gesture list: ", e)
         else:
@@ -145,7 +155,7 @@ def main():
         # reading the image from video capture
         _, img = cap.read() 
         
-        previous_time = display_fps(img , previous_time)
+        previous_time = Utility_helper.display_fps(img , previous_time)
         gestures = detector.get_gestures(img)         
         
         if gestures.get("both_up", False):
@@ -171,6 +181,14 @@ def main():
 
     cap.release()
     cv2.destroyAllWindows()
+
+
+def pose_img_prediction(img_path, save_path="pose_showcase.jpg"):
+    img = cv2.imread(img_path)
+    pose_detector = PoseDetector()
+    img = pose_detector.get_landmarks(img)
+    cv2.imwrite(save_path, img)
+    return img
 
 
 if __name__ == '__main__':
