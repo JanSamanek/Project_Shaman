@@ -25,7 +25,7 @@ class RobotController():
                     self.tracker.set_target(calculate_center(*box))
                     break
         else:
-            self.instruction_img = self.tracker.track(img, camera_rotation, debug=True)
+            self.instruction_img = self.tracker.track(img, camera_rotation, debug=False)
 
             if self.tracker.tracked_to is not None:
                 offset = self.tracker.get_to_offset_from_center(img.shape[1])

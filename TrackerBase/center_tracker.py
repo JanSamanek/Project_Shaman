@@ -7,7 +7,7 @@ import json
 
 class PersonTracker:
 
-    def __init__(self, center_to, max_disappeared=50, max_distance=100):
+    def __init__(self, center_to, max_disappeared=50, max_distance=200):
         print("[INF] Initalizing tracker base...")
         self.max_disappeared = max_disappeared
         self.max_distance = max_distance
@@ -98,7 +98,7 @@ class PersonTracker:
                 to.measured_centroid = new_center
                 to.disappeared_count = 0
                 
-                robot_pixel_movement = int(5*camera_rotation*self.dt*self.img_width/((self.FoV*np.pi*2)/360))
+                robot_pixel_movement = int(camera_rotation*self.dt*self.img_width/((self.FoV*np.pi*2)/360))
                 
                 to.centroid = to.apply_kf(new_center) if abs(robot_pixel_movement) < 10 else None
                 ##################################################################

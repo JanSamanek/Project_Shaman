@@ -17,7 +17,7 @@ with open("settings.json") as json_file:
 
 class KalmanFilter:
 
-    def __init__(self, init_pos, dt=0.08, u_x=0, u_y=0, u_z=0, std_acc=3, x_std_meas=0.1, y_std_meas=0.1):
+    def __init__(self, init_pos, u_x=0, u_y=0, u_z=0, std_acc=3, x_std_meas=0.1, y_std_meas=0.1):
         """
         :param init_pos: initial position (x,y)
         :param camera_rotation: the rotation of camera around the z axis
@@ -45,9 +45,9 @@ class KalmanFilter:
                             [0, 0, 0, 1]])
         
         # Define the Control Input Matrix B
-        self.B = np.matrix([[(self.dt**2)/2, 0, 5*dt*img_width/FoV],
+        self.B = np.matrix([[(self.dt**2)/2, 0, dt*img_width/FoV],
                             [0, (self.dt**2)/2, 0], 
-                            [self.dt, 0, 0],        ### u_z*R ?????
+                            [self.dt, 0, 0],     
                             [0, self.dt, 0]])
         
         # Define Measurement Mapping Matrix
