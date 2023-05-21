@@ -10,6 +10,7 @@ try:
     import adafruit_mpu6050
 except ModuleNotFoundError:
     pass
+
 try:
     from Controler.robot_controller import RobotController
     from Utilities.display import Utility_helper
@@ -137,7 +138,7 @@ class InfoPublisher(Client):
         instructions = self.robot_controller.get_instructions(img, camera_rotation)
         img = self.robot_controller.get_instruction_img()
         
-        Utility_helper.display_camera_rotation(img, 5*camera_rotation)
+        Utility_helper.display_camera_rotation(img, camera_rotation)
         Utility_helper.display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
         
         if 'previous_time' not in globals():
