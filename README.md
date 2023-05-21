@@ -43,7 +43,7 @@ Next you need to install
  
 ```sudo apt-get install mosquitto mosquitto-clients``` 
  
- ## Program starting
+ ## Starting the program
 Then you run the communication.py file on jetbot with the argument -d jetbot -ip ip_adress_to_connect_to: 
 
 ```communication.py -d jetbot -ip ip_adress_to_connect_to``` 
