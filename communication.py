@@ -3,19 +3,6 @@ import json
 import time
 import paho.mqtt.client as mqtt
 import cv2
-try:
-    from jetbot import Robot
-    import board
-    import busio
-    import adafruit_mpu6050
-except ModuleNotFoundError:
-    pass
-
-try:
-    from Controler.robot_controller import RobotController
-    from Utilities.display import Utility_helper
-except ModuleNotFoundError:
-    pass
 
 # BROKER_PORT - port for outside connections is defined in /etc/mosquitto on computer, i overwrote the default config file
 BROKER_PORT=8080 
@@ -181,9 +168,17 @@ if __name__ == '__main__':
 
 
     if args.device == "jetbot":
+        from jetbot import Robot
+        import board
+        import busio
+        import adafruit_mpu6050
+
         jetbot = Jetbot(args.ip_adress)
         jetbot.run()
     else:
+        from Controler.robot_controller import RobotController
+        from Utilities.display import Utility_helper
+        
         server = MqttServer()
         server.start_server()
         publisher = InfoPublisher()
