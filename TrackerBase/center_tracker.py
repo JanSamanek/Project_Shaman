@@ -16,6 +16,12 @@ class PersonTracker:
         self.to_dict = OrderedDict()
         self._register(center_to)
 
+        with open("settings.json") as json_file:
+            data = json.load(json_file)
+            self.FoV = data['FoV']
+            self.dt = data['dt']
+            self.img_width = data['img_width']
+
     def _register(self, person_center):
         # assign new person center
         self.to_dict[self.nextID] = TrackableObject(*person_center, self.nextID)
@@ -91,8 +97,10 @@ class PersonTracker:
                 to.box = center_box_dict[tuple(new_center)]
                 to.measured_centroid = new_center
                 to.disappeared_count = 0
-                                
-                to.centroid = to.apply_kf(new_center)
+                
+                robot_pixel_movement = int(camera_rotation*self.dt*self.img_width/((self.FoV*np.pi*2)/360))
+                
+                to.centroid = to.apply_kf(new_center) if abs(robot_pixel_movement) < 10 else None
                 ##################################################################
 
                 used_rows.add(row)

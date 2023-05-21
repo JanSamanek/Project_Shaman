@@ -125,9 +125,11 @@ class InfoPublisher(Client):
         instructions = self.robot_controller.get_instructions(img, camera_rotation)
         img = self.robot_controller.get_instruction_img()
         
-        Utility_helper.display_camera_rotation(img, camera_rotation)
-        Utility_helper.display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
-        
+        ######## debug #########
+        # Utility_helper.display_camera_rotation(img, camera_rotation)
+        # Utility_helper.display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
+        ########################
+
         if 'previous_time' not in globals():
             global previous_time
             previous_time = 0
@@ -178,7 +180,7 @@ if __name__ == '__main__':
     else:
         from Controler.robot_controller import RobotController
         from Utilities.display import Utility_helper
-        
+
         server = MqttServer()
         server.start_server()
         publisher = InfoPublisher()
