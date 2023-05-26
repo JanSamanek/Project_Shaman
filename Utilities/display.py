@@ -34,3 +34,12 @@ class Utility_helper():
     def display_camera_rotation(img, camera_rotation):
         text = 'camera shift: ' + str(int(dt*img_width*camera_rotation/((FoV*np.pi*2)/360))) + ' pixels'
         cv.putText(img, text, (50, 140), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
+
+    @staticmethod
+    def display_gesture(img, instructions):
+        text = 'gesture: None'
+        for key, value in instructions.items():
+            if value == True:
+                gesture = (" ").join(key.split("_"))
+                text = 'gesture: ' + gesture
+        cv.putText(img, text, (img.shape[0] - 200, 50), cv.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)

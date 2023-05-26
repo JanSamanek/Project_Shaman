@@ -130,6 +130,8 @@ class InfoPublisher(Client):
         # Utility_helper.display_motor_speed(img, instructions.get("mot_speed_one", None), instructions.get("mot_speed_two", None))
         ########################
 
+        Utility_helper.display_gesture(img, instructions)
+        
         if 'previous_time' not in globals():
             global previous_time
             previous_time = 0
